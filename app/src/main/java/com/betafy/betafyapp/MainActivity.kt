@@ -5,8 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
-import com.betafy.betafyapp.ui.theme.BetafyTheme
-import com.betafy.betafyapp.ui.theme.BetafyContrast
+import com.betafy.betafyapp.core.uikit.theme.BetafyTheme
+import com.betafy.betafyapp.core.uikit.theme.BetafyContrast
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

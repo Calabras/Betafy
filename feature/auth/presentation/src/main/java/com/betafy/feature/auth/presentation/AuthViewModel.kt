@@ -42,7 +42,7 @@ class AuthViewModel @Inject constructor(
         if (s.isLoading) return
         _state.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
-            signUpUseCase(s.fullName, s.username, s.email, s.password)
+            signUpUseCase(s.username, s.email, s.password)
                 .onSuccess { _state.update { it.copy(isLoading = false, isRegistered = true) } }
                 .onFailure { e -> _state.update { it.copy(isLoading = false, error = e.localizedMessage ?: "Ошибка регистрации") } }
         }

@@ -20,8 +20,7 @@ class FirebaseAuthRepository(
     override suspend fun signUp(
         email: String,
         password: String,
-        username: String,
-        fullName: String
+        username: String
     ): Result<String> = runCatching {
         val firebaseUser = try {
             auth.createUserWithEmailAndPassword(email, password).await().user
@@ -41,7 +40,6 @@ class FirebaseAuthRepository(
                 val user = mapOf(
                     "email" to email,
                     "username" to username,
-                    "fullName" to fullName,
                     "avatarUrl" to "",
                     "createdAt" to ServerValue.TIMESTAMP
                 )
