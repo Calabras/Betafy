@@ -47,6 +47,8 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(project(":feature:auth:di"))
+    implementation(project(":app:presentation"))
+    implementation(project(":core:ui-kit"))
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
