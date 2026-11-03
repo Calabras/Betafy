@@ -84,3 +84,29 @@ val DefaultReadingTypography = BetafyReadingTypography(
     quote = TextStyle(fontFamily = Literata, fontWeight = FontWeight.Normal, fontStyle = FontStyle.Italic, fontSize = 18.sp, lineHeight = 30.sp, letterSpacing = 0.1.sp),
     footnote = TextStyle(fontFamily = Literata, fontWeight = FontWeight.Normal, fontSize = 13.sp, lineHeight = 19.sp, letterSpacing = 0.2.sp),
 )
+
+/**
+ * Типографика шапки экранов
+ */
+@Immutable
+data class BetafyHeaderTypography(
+    val caption: TextStyle,
+    val title: TextStyle
+)
+
+val BetafyHeaderText = BetafyHeaderTypography(
+    caption = TextStyle(
+        fontFamily = Onest,
+        fontWeight = FontWeight.Medium,
+        fontSize = 16.sp,
+        lineHeight = 22.sp,
+        letterSpacing = 0.2.sp
+    ),
+    title = TextStyle(
+        fontFamily = Unbounded,
+        fontWeight = FontWeight.Bold,
+        fontSize = 24.sp,
+        lineHeight = 32.sp,
+        letterSpacing = -0.1.sp
+    )
+)
