@@ -26,9 +26,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.betafy.betafyapp.core.uikit.theme.BetafyHeaderText
 import com.betafy.presentation.navigation.model.AccentRole
 import com.betafy.presentation.navigation.model.NavigationBottomModel
 
@@ -46,11 +46,12 @@ fun ScreenHeader(
         targetState = item,
         modifier = modifier.fillMaxWidth(),
         transitionSpec = {
-            (fadeIn(tween(300)) + slideInVertically(tween(300)) { it / 4 }) togetherWith
-                    fadeOut(tween(150))
+            (fadeIn(tween(300)) + slideInVertically(tween(300)) { it / 4 })
+                .togetherWith(fadeOut(tween(150)))
         },
         label = "header"
     ) { target ->
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -58,24 +59,34 @@ fun ScreenHeader(
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+
             Column(Modifier.weight(1f)) {
+
                 Text(
                     text = target.caption,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = BetafyHeaderText.caption,
                     color = captionColor
                 )
+
                 target.headerLines.forEach { line ->
+
                     Text(
                         text = buildAnnotatedString {
                             line.forEach { part ->
-                                val color = part.accent?.let { accentColors.getValue(it) } ?: textColor
-                                withStyle(SpanStyle(color = color)) { append(part.text) }
+                                val color = part.accent
+                                    ?.let { accentColors.getValue(it) }
+                                    ?: textColor
+
+                                withStyle(SpanStyle(color = color)) {
+                                    append(part.text)
+                                }
                             }
                         },
-                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
+                        style = BetafyHeaderText.title
                     )
                 }
             }
+
             Box(
                 modifier = Modifier
                     .size(44.dp)
