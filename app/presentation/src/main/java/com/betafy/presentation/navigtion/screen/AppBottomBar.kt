@@ -2,9 +2,8 @@ package com.betafy.presentation.navigation.screen
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -70,6 +69,16 @@ private val ActiveIconSize = 28.dp
 private const val StrokeWidth = 2.0f
 private const val ActiveStrokeWidth = 2.4f
 
+// ===== СКОРОСТЬ АНИМАЦИИ (в миллисекундах) =====
+// SlideDuration - как долго бугорок едет к новой вкладке
+// DipDuration - как быстро кружок опускается, RiseDuration - как плавно поднимается обратно
+// DipLevel - насколько глубоко опускается (1 = вообще не опускается, 0.35 = заметно опускается)
+// Чтобы кружок просто плавно ехал без опускания, поставь DipLevel = 1f
+private const val SlideDuration = 400
+private const val DipDuration = 150
+private const val RiseDuration = 350
+private const val DipLevel = 0.5f
+
 // Служебные размеры: RingRadius - радиус бугорка, CircleRestDrop - насколько центр кружка ниже линии панели в покое
 // CircleDipDistance - на сколько кружок «проседает» при анимации, BumpHeight - высота зоны над панелью
 private val RingRadius = CircleSize / 2 + RingGap
@@ -129,17 +138,17 @@ fun BetafyBottomBar(
     val bump = remember { Animatable(1f) }
     val strokeProgress = remember { Animatable(1f) }
 
-    // Скольжение бугорка к выбранной вкладке (dampingRatio - упругость, stiffness - скорость)
+    // Плавное скольжение бугорка к выбранной вкладке, без пружины и покачивания
     LaunchedEffect(selectedIndex) {
         position.animateTo(
             selectedIndex.toFloat(),
-            spring(dampingRatio = 0.72f, stiffness = Spring.StiffnessLow)
+            tween(SlideDuration, easing = FastOutSlowInEasing)
         )
     }
-    // «Проседание» и всплытие кружка с бугорком при смене вкладки
+    // Кружок мягко опускается и плавно поднимается на место, без подпрыгивания
     LaunchedEffect(selectedIndex) {
-        bump.animateTo(0.35f, tween(140))
-        bump.animateTo(1f, spring(dampingRatio = 0.45f, stiffness = Spring.StiffnessLow))
+        bump.animateTo(DipLevel, tween(DipDuration, easing = FastOutLinearInEasing))
+        bump.animateTo(1f, tween(RiseDuration, easing = FastOutSlowInEasing))
     }
     // Прорисовка иконки полосками (650 - длительность в мс, delayMillis - задержка старта)
     LaunchedEffect(selectedIndex) {
@@ -162,7 +171,7 @@ fun BetafyBottomBar(
             val cx = (position.value + 0.5f) * (width / items.size)
             val radius = RingRadius.toPx()
             val fillet = FilletRadius.toPx()
-            val drop = circleDrop(bump.value.coerceIn(0f, 1.2f))
+            val drop = circleDrop(bump.value.coerceIn(0f, 1f))
             val cy = top + drop
 
             val dx = sqrt((radius + fillet).pow(2) - (fillet + drop).pow(2))
@@ -221,7 +230,7 @@ fun BetafyBottomBar(
         Box(
             modifier = Modifier
                 .offset {
-                    val drop = circleDrop(bump.value.coerceIn(0f, 1.2f))
+                    val drop = circleDrop(bump.value.coerceIn(0f, 1f))
                     IntOffset(
                         x = ((position.value + 0.5f) * itemWidth.toPx() - CircleSize.toPx() / 2f).roundToInt(),
                         y = (BumpHeight.toPx() + drop - CircleSize.toPx() / 2f).roundToInt()

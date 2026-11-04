@@ -1,6 +1,361 @@
-<?xml version="1.0" encoding="utf-8"?>
-<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@drawable/ic_launcher_background" />
-    <foreground android:drawable="@drawable/ic_launcher_foreground" />
-    <monochrome android:drawable="@drawable/ic_launcher_foreground" />
-</adaptive-icon>
+
+<svg xmlns="http://www.w3.org/2000/svg"
+    width="1024" height="1024"
+    viewBox="0 0 1024 1024">
+
+    <defs>
+        <clipPath id="iconClip">
+            <rect x="20" y="20" width="984" height="984" rx="190"/>
+        </clipPath>
+
+        <!-- Основной градиент -->
+        <radialGradient id="bg" cx="50%" cy="48%" r="75%">
+            <stop offset="0%" stop-color="#002C20"/>
+            <stop offset="55%" stop-color="#003D2A"/>
+            <stop offset="100%" stop-color="#001C15"/>
+        </radialGradient>
+
+        <!-- Градиенты волн -->
+        <linearGradient id="waveTop" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#276F50"/>
+            <stop offset="55%" stop-color="#14563C"/>
+            <stop offset="100%" stop-color="#073A2A"/>
+        </linearGradient>
+
+        <linearGradient id="waveBottom" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#4B966B"/>
+            <stop offset="50%" stop-color="#246B4C"/>
+            <stop offset="100%" stop-color="#0B4934"/>
+        </linearGradient>
+
+        <linearGradient id="waveSide" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#39835C"/>
+            <stop offset="100%" stop-color="#0A3929"/>
+        </linearGradient>
+
+        <!-- Центральная эмблема -->
+        <linearGradient id="cream" x1="0" y1="0" x2="0.8" y2="1">
+            <stop offset="0%" stop-color="#FFF9EC"/>
+            <stop offset="100%" stop-color="#EDE2CC"/>
+        </linearGradient>
+
+        <!-- Пастельные капсулы -->
+        <linearGradient id="purple" x1="0" y1="0" x2="0.9" y2="1">
+            <stop offset="0%" stop-color="#F0D5FF"/>
+            <stop offset="65%" stop-color="#C58AEF"/>
+            <stop offset="100%" stop-color="#A66BDB"/>
+        </linearGradient>
+
+        <linearGradient id="yellow" x1="0" y1="0" x2="0.9" y2="1">
+            <stop offset="0%" stop-color="#FFF1BD"/>
+            <stop offset="65%" stop-color="#FFD47A"/>
+            <stop offset="100%" stop-color="#F2B54D"/>
+        </linearGradient>
+
+        <linearGradient id="peach" x1="0" y1="0" x2="0.9" y2="1">
+            <stop offset="0%" stop-color="#FFD9C1"/>
+            <stop offset="65%" stop-color="#FFA98B"/>
+            <stop offset="100%" stop-color="#F47E65"/>
+        </linearGradient>
+
+        <linearGradient id="mint" x1="0" y1="0" x2="0.9" y2="1">
+            <stop offset="0%" stop-color="#D9F6CE"/>
+            <stop offset="65%" stop-color="#A5E3B3"/>
+            <stop offset="100%" stop-color="#72C49A"/>
+        </linearGradient>
+
+        <!-- Тени -->
+        <filter id="softShadow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="16"/>
+        </filter>
+
+        <filter id="logoGlow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="22"/>
+        </filter>
+    </defs>
+
+    <g clip-path="url(#iconClip)">
+
+        <!-- ФОН -->
+        <rect width="1024" height="1024" fill="url(#bg)"/>
+
+        <!-- Верхняя волна -->
+        <path d="
+            M0 0 H1024 V175
+            C920 100 850 95 760 145
+            C640 220 590 290 455 245
+            C340 205 310 115 175 140
+            C95 155 40 225 0 330 Z"
+            fill="url(#waveTop)"/>
+
+        <!-- Верхняя правая волна -->
+        <path d="
+            M1024 70
+            C900 65 815 95 755 170
+            C680 265 745 365 830 385
+            C900 405 965 365 1024 320 Z"
+            fill="#0B4934" opacity="0.75"/>
+
+        <!-- Левая боковая волна -->
+        <path d="
+            M0 335
+            C90 270 180 250 260 315
+            C345 390 310 500 225 565
+            C145 625 75 690 0 715 Z"
+            fill="url(#waveSide)" opacity="0.72"/>
+
+        <!-- Нижняя левая волна -->
+        <path d="
+            M0 790
+            C135 745 210 815 300 870
+            C390 925 485 930 580 890
+            C500 1020 300 1035 0 1000 Z"
+            fill="url(#waveBottom)" opacity="0.85"/>
+
+        <!-- Нижняя центральная волна -->
+        <path d="
+            M400 1024
+            C505 910 610 850 730 855
+            C845 860 915 940 1024 885
+            V1024 Z"
+            fill="url(#waveBottom)"/>
+
+        <!-- Нижняя правая волна -->
+        <path d="
+            M1024 760
+            C925 820 850 790 780 745
+            C690 685 710 600 805 545
+            C900 485 960 475 1024 430 Z"
+            fill="#0A3A2A" opacity="0.8"/>
+
+        <!-- Центральная тёмная область -->
+        <path d="
+            M0 410
+            C180 280 335 330 475 345
+            C650 365 765 250 1024 350
+            V710
+            C870 805 745 780 610 800
+            C420 830 255 740 120 800
+            L0 740 Z"
+            fill="#00291E" opacity="0.48"/>
+
+        <!-- Орбитальная линия -->
+        <path d="
+            M110 650
+            C180 420 550 205 815 215
+            C930 220 955 310 900 420
+            C830 565 690 680 515 750
+            C350 815 165 815 115 715
+            C90 670 110 610 150 565"
+            fill="none"
+            stroke="#A6E3B0"
+            stroke-width="5"
+            opacity="0.85"/>
+
+        <!-- Вторичная орбитальная линия -->
+        <path d="
+            M290 510
+            C410 410 610 300 790 280"
+            fill="none"
+            stroke="#4B9C70"
+            stroke-width="3"
+            opacity="0.22"/>
+
+        <!-- СВЕЧЕНИЕ ЛОГОТИПА -->
+        <ellipse cx="512" cy="515" rx="270" ry="230"
+            fill="#C5EAC6" opacity="0.10"
+            filter="url(#logoGlow)"/>
+
+        <!-- ЦЕНТРАЛЬНЫЙ ЛОГОТИП B -->
+        <path d="
+            M320 355
+            H625
+            C710 355 755 393 755 460
+            C755 510 725 540 680 555
+            C735 570 760 610 760 660
+            C760 730 715 765 630 765
+            H320 Z"
+            fill="url(#cream)"/>
+
+        <!-- Внутренние вырезы верхней страницы -->
+        <path d="
+            M405 425
+            H590
+            C635 425 650 445 650 475
+            C650 495 635 515 610 515
+            H405 Z"
+            fill="#003625"/>
+
+        <!-- Вырез нижней страницы -->
+        <path d="
+            M405 575
+            H610
+            C645 575 660 595 660 625
+            C660 650 640 665 610 665
+            H405 Z"
+            fill="#003625"/>
+
+        <!-- Книжные изгибы -->
+        <path d="
+            M405 515
+            C465 515 490 525 512 550
+            C535 525 560 515 610 515"
+            fill="none"
+            stroke="#003625"
+            stroke-width="18"
+            stroke-linecap="round"/>
+
+        <path d="
+            M405 665
+            C465 665 490 675 512 700
+            C535 675 560 665 610 665"
+            fill="none"
+            stroke="#003625"
+            stroke-width="18"
+            stroke-linecap="round"/>
+
+        <!-- ФИОЛЕТОВАЯ КАПСУЛА -->
+        <g transform="rotate(-16 300 280)">
+            <rect x="175" y="190" width="270" height="165"
+                rx="82" fill="#6E479B" opacity="0.65"
+                transform="translate(0 12)"/>
+
+            <rect x="175" y="180" width="270" height="165"
+                rx="82" fill="url(#purple)"/>
+
+            <path d="M205 220 Q295 170 405 205"
+                fill="none" stroke="#FFFFFF"
+                stroke-width="6" opacity="0.3"/>
+
+            <path d="
+                M310 225
+                C320 255 330 265 365 275
+                C330 285 320 295 310 325
+                C300 295 290 285 255 275
+                C290 265 300 255 310 225 Z"
+                fill="#573A79"/>
+        </g>
+
+        <!-- ЖЁЛТАЯ КАПСУЛА -->
+        <g transform="rotate(-16 835 280)">
+            <rect x="715" y="195" width="240" height="155"
+                rx="77" fill="#A46A23" opacity="0.5"
+                transform="translate(0 12)"/>
+
+            <rect x="715" y="185" width="240" height="155"
+                rx="77" fill="url(#yellow)"/>
+
+            <!-- Перо -->
+            <path d="
+                M825 225
+                C800 250 785 290 800 315
+                C840 290 865 250 855 215
+                C845 220 835 225 825 225 Z"
+                fill="#425B32"/>
+
+            <path d="M800 315 L845 235"
+                stroke="#425B32"
+                stroke-width="7"
+                stroke-linecap="round"/>
+
+            <path d="M825 275 L850 270"
+                stroke="#425B32"
+                stroke-width="5"
+                stroke-linecap="round"/>
+        </g>
+
+        <!-- ПЕРСИКОВАЯ КАПСУЛА -->
+        <g transform="rotate(14 310 760)">
+            <rect x="175" y="690" width="285" height="165"
+                rx="82" fill="#A94E37" opacity="0.55"
+                transform="translate(0 13)"/>
+
+            <rect x="175" y="680" width="285" height="165"
+                rx="82" fill="url(#peach)"/>
+
+            <path d="M205 710 Q300 670 420 710"
+                fill="none" stroke="#FFFFFF"
+                stroke-width="5" opacity="0.35"/>
+
+            <!-- Открытая книга -->
+            <path d="
+                M275 730
+                C310 710 340 725 355 745
+                V805
+                C325 780 300 780 275 795 Z"
+                fill="none"
+                stroke="#854335"
+                stroke-width="11"
+                stroke-linejoin="round"/>
+
+            <path d="
+                M355 745
+                C375 720 410 720 430 730
+                V795
+                C400 780 375 780 355 805 Z"
+                fill="none"
+                stroke="#854335"
+                stroke-width="11"
+                stroke-linejoin="round"/>
+        </g>
+
+        <!-- МЯТНАЯ КАПСУЛА -->
+        <g transform="rotate(-16 830 730)">
+            <rect x="700" y="655" width="250" height="165"
+                rx="82" fill="#367C55" opacity="0.55"
+                transform="translate(0 13)"/>
+
+            <rect x="700" y="645" width="250" height="165"
+                rx="82" fill="url(#mint)"/>
+
+            <!-- Символ сообщества -->
+            <g fill="#14503A">
+                <circle cx="790" cy="705" r="18"/>
+                <circle cx="845" cy="705" r="18"/>
+
+                <path d="
+                    M755 765
+                    C755 735 775 725 790 725
+                    C815 725 830 745 830 765 Z"/>
+
+                <path d="
+                    M810 765
+                    C810 735 830 725 845 725
+                    C870 725 885 745 885 765 Z"/>
+            </g>
+        </g>
+
+        <!-- ЗВЁЗДЫ -->
+        <g fill="#FFF5E4">
+            <path d="
+                M620 115
+                C630 150 640 160 675 170
+                C640 180 630 190 620 225
+                C610 190 600 180 565 170
+                C600 160 610 150 620 115 Z"/>
+
+            <path d="
+                M145 470
+                C153 495 161 503 186 511
+                C161 519 153 527 145 552
+                C137 527 129 519 104 511
+                C129 503 137 495 145 470 Z"/>
+
+            <path d="
+                M590 770
+                C598 795 606 803 631 811
+                C606 819 598 827 590 852
+                C582 827 574 819 549 811
+                C574 803 582 795 590 770 Z"/>
+        </g>
+
+        <!-- Небольшие декоративные точки -->
+        <g fill="#C4E8B8" opacity="0.7">
+            <circle cx="510" cy="170" r="4"/>
+            <circle cx="900" cy="580" r="5"/>
+            <circle cx="170" cy="600" r="4"/>
+            <circle cx="680" cy="900" r="4"/>
+        </g>
+
+    </g>
+</svg>
