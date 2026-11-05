@@ -44,6 +44,8 @@ import com.betafy.presentation.navigation.model.NavigationBottomModel
 @Composable
 fun NavigationScreen(
     onLogout: () -> Unit,
+    onCreateReader: () -> Unit = {},
+    onCreateWriter: () -> Unit = {},
     navController: NavHostController = rememberNavController()
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -73,8 +75,8 @@ fun NavigationScreen(
                 composable(NavigationBottomModel.Profile.route) {
                     ProfilePlaceholder(
                         onLogout = onLogout,
-                        onCreateReader = { /* TODO: создание профиля ридера */ },
-                        onCreateWriter = { /* TODO: создание профиля писателя */ }
+                        onCreateReader = onCreateReader,
+                        onCreateWriter = onCreateWriter
                     )
                 }
             }
@@ -119,7 +121,7 @@ private fun ProfilePlaceholder(
             // Якорь: новые кнопки появляются прямо над этой кнопкой
             Box {
                 Button(onClick = { expanded = true }) {
-                    Text("Создать профиль")
+                    Text("Создать аккаунт")
                 }
 
                 if (expanded) {
@@ -131,12 +133,12 @@ private fun ProfilePlaceholder(
                             Button(onClick = {
                                 expanded = false
                                 onCreateReader()
-                            }) { Text("Создать профиль ридера") }
+                            }) { Text("Добавить профиль ридера") }
 
                             Button(onClick = {
                                 expanded = false
                                 onCreateWriter()
-                            }) { Text("Создать профиль писателя") }
+                            }) { Text("Добавить профиль писателя") }
                         }
                     }
                 }

@@ -10,6 +10,9 @@ import androidx.navigation.compose.rememberNavController
 import com.betafy.feature.auth.presentation.LoginScreen
 import com.betafy.feature.auth.presentation.RegisterScreen
 import com.betafy.feature.auth.presentation.SessionViewModel
+import com.betafy.feature.profile.presentation.ProfileEditScreen
+import com.betafy.feature.profile.presentation.ProfileKind
+import com.betafy.feature.profile.presentation.ProfileRoutes
 import com.betafy.feature.splash.presentation.SplashScreen
 import com.betafy.presentation.navigation.screen.NavigationScreen
 import kotlinx.coroutines.delay
@@ -131,7 +134,27 @@ fun AppNavigation() {
 
                         launchSingleTop = true
                     }
-                }
+                },
+                onCreateReader = { navController.navigate(ProfileRoutes.READER) },
+                onCreateWriter = { navController.navigate(ProfileRoutes.WRITER) }
+            )
+        }
+
+        composable(ProfileRoutes.READER) {
+            ProfileEditScreen(
+                kind = ProfileKind.READER,
+                userId = session.currentUserId(),
+                onBack = { navController.popBackStack() },
+                onSaved = { navController.popBackStack() }
+            )
+        }
+
+        composable(ProfileRoutes.WRITER) {
+            ProfileEditScreen(
+                kind = ProfileKind.WRITER,
+                userId = session.currentUserId(),
+                onBack = { navController.popBackStack() },
+                onSaved = { navController.popBackStack() }
             )
         }
     }

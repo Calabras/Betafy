@@ -10,5 +10,6 @@ class SessionViewModel @Inject constructor(
     private val repository: AuthRepository
 ) : ViewModel() {
     fun isLoggedIn(): Boolean = repository.currentUserId != null
+    fun currentUserId(): String? = repository.currentUserId
     fun signOut() = repository.signOut()
 }

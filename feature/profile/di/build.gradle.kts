@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -19,5 +20,10 @@ android {
 }
 
 dependencies {
+    implementation(platform("com.google.firebase:firebase-bom:35.0.0"))
+    implementation("com.google.firebase:firebase-database")
     implementation(project(":feature:profile:domain"))
+    implementation(project(":feature:profile:data"))
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
 }
