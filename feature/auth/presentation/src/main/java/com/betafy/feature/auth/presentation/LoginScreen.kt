@@ -80,7 +80,7 @@ fun LoginScreen(
         Spacer(Modifier.height(BetafySpacing.md))
 
         if (registered) {
-            AuthSuccessMessage(text = "Аккаунт создан. Теперь войдите.")
+            AuthSuccessMessage(text = "Аккаунт создан, теперь войдите")
             Spacer(Modifier.height(BetafySpacing.sm))
         }
 

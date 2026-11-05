@@ -525,7 +525,7 @@ fun AuthErrorMessage(
         contentColor = MaterialTheme.colorScheme.onErrorContainer
     ) {
         Text(
-            text = text,
+            text = notificationText(text),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(
                 horizontal = 16.dp,
@@ -553,7 +553,7 @@ fun AuthSuccessMessage(
         contentColor = success.onColorContainer
     ) {
         Text(
-            text = text,
+            text = notificationText(text),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(
                 horizontal = 16.dp,
@@ -562,3 +562,6 @@ fun AuthSuccessMessage(
         )
     }
 }
+
+private fun notificationText(text: String): String =
+    text.replace(". ", ", ").trimEnd('.', ' ')

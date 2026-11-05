@@ -66,11 +66,11 @@ class ProfileRepositoryImpl(
             text.contains("network", ignoreCase = true) ||
             text.contains("timeout", ignoreCase = true) ||
             text.contains("unavailable", ignoreCase = true)
-        if (offline) return "Нет связи с базой. Проверьте интернет"
+        if (offline) return "Нет связи с базой, проверьте интернет"
         if (text.contains("Permission denied", ignoreCase = true) ||
             text.contains("PERMISSION_DENIED", ignoreCase = true)
         ) {
-            return "Нет доступа к профилю. Правила базы для профилей ещё не открыты"
+            return "Нет доступа к профилю, правила базы для профилей ещё не открыты"
         }
         return "Не удалось выполнить запрос"
     }

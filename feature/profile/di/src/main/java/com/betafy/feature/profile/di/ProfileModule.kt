@@ -1,5 +1,7 @@
 package com.betafy.feature.profile.di
 
+import android.content.Context
+import com.betafy.feature.profile.data.FileProfileTrace
 import com.betafy.feature.profile.data.ProfileRemoteDataSource
 import com.betafy.feature.profile.data.ProfileRepositoryImpl
 import com.betafy.feature.profile.domain.GetFeedbackTypesUseCase
@@ -7,12 +9,14 @@ import com.betafy.feature.profile.domain.GetGenresUseCase
 import com.betafy.feature.profile.domain.GetReaderProfileUseCase
 import com.betafy.feature.profile.domain.GetWriterProfileUseCase
 import com.betafy.feature.profile.domain.ProfileRepository
+import com.betafy.feature.profile.domain.ProfileTrace
 import com.betafy.feature.profile.domain.SaveReaderProfileUseCase
 import com.betafy.feature.profile.domain.SaveWriterProfileUseCase
 import com.google.firebase.database.FirebaseDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -22,9 +26,16 @@ object ProfileModule {
 
     @Provides
     @Singleton
+    fun provideProfileTrace(
+        @ApplicationContext context: Context
+    ): ProfileTrace = FileProfileTrace(context)
+
+    @Provides
+    @Singleton
     fun provideProfileRemoteDataSource(
-        database: FirebaseDatabase
-    ): ProfileRemoteDataSource = ProfileRemoteDataSource(database)
+        database: FirebaseDatabase,
+        trace: ProfileTrace
+    ): ProfileRemoteDataSource = ProfileRemoteDataSource(database, trace)
 
     @Provides
     @Singleton

@@ -54,7 +54,7 @@ class FirebaseAuthRepository(
             runCatching { withTimeout(5_000) { firebaseUser.delete().await() } }
             auth.signOut()
             if (e is TimeoutCancellationException) {
-                throw IllegalStateException("Нет связи с базой. Проверьте интернет или включите VPN")
+                throw IllegalStateException("Нет связи с базой, проверьте интернет или включите VPN")
             }
             throw e
         }

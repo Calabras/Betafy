@@ -6,12 +6,11 @@ import com.betafy.feature.profile.domain.GetFeedbackTypesUseCase
 import com.betafy.feature.profile.domain.GetGenresUseCase
 import com.betafy.feature.profile.domain.GetReaderProfileUseCase
 import com.betafy.feature.profile.domain.GetWriterProfileUseCase
+import com.betafy.feature.profile.domain.ProfileTrace
 import com.betafy.feature.profile.domain.SaveReaderProfileUseCase
 import com.betafy.feature.profile.domain.SaveWriterProfileUseCase
 import com.betafy.feature.profile.domain.model.FeedbackType
 import com.betafy.feature.profile.domain.model.Genre
-import com.betafy.feature.profile.domain.model.ReaderProfile
-import com.betafy.feature.profile.domain.model.WriterProfile
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +26,8 @@ class ProfileEditViewModel @Inject constructor(
     private val getWriterProfile: GetWriterProfileUseCase,
     private val saveWriterProfile: SaveWriterProfileUseCase,
     private val getGenres: GetGenresUseCase,
-    private val getFeedbackTypes: GetFeedbackTypesUseCase
+    private val getFeedbackTypes: GetFeedbackTypesUseCase,
+    private val trace: ProfileTrace
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileEditUiState())
@@ -38,6 +38,7 @@ class ProfileEditViewModel @Inject constructor(
     fun open(kind: ProfileKind, userId: String?) {
         if (opened) return
         opened = true
+        trace.event("экран ${kind.name} открыт, user=${userId ?: "нет"}")
         if (userId.isNullOrBlank()) {
             _state.value = ProfileEditUiState(
                 kind = kind,
@@ -56,19 +57,12 @@ class ProfileEditViewModel @Inject constructor(
                             current.copy(
                                 isLoading = false,
                                 loaded = true,
+                                alreadyExists = profile != null,
                                 genres = genres,
-                                feedbackTypes = feedbackTypes,
-                                bio = profile?.bio.orEmpty(),
-                                experienceLevel = profile?.experienceLevel.orEmpty(),
-                                preferredLanguage = profile?.preferredLanguage.orEmpty(),
-                                maxWordCount = profile?.maxWordCount?.takeIf { it > 0 }?.toString().orEmpty(),
-                                isAvailable = profile?.isAvailable ?: false,
-                                cooperationType = profile?.cooperationType.orEmpty(),
-                                price = profile?.price?.toEditablePrice().orEmpty(),
-                                selectedGenreIds = profile?.genreIds?.toSet().orEmpty(),
-                                selectedFeedbackTypeIds = profile?.feedbackTypeIds?.toSet().orEmpty()
+                                feedbackTypes = feedbackTypes
                             )
                         }
+                        trace.event("экран READER загружен, запись=${if (profile == null) "нет" else "есть"}")
                     }
                     .onFailure { error -> showLoadFailure(error, genres, feedbackTypes) }
             } else {
@@ -78,11 +72,10 @@ class ProfileEditViewModel @Inject constructor(
                             current.copy(
                                 isLoading = false,
                                 loaded = true,
-                                bio = profile?.bio.orEmpty(),
-                                experienceLevel = profile?.experienceLevel.orEmpty(),
-                                preferredLanguage = profile?.preferredLanguage.orEmpty()
+                                alreadyExists = profile != null
                             )
                         }
+                        trace.event("экран WRITER загружен, запись=${if (profile == null) "нет" else "есть"}")
                     }
                     .onFailure { error -> showLoadFailure(error, emptyList(), emptyList()) }
             }
@@ -95,7 +88,8 @@ class ProfileEditViewModel @Inject constructor(
         feedbackTypes: List<FeedbackType>
     ) {
         val message = error.message
-        val rulesClosed = message?.contains("Правила базы") == true
+        trace.event("загрузка ${_state.value.kind.name}: ${message ?: "без текста"}")
+        val rulesClosed = message?.contains("правила базы", ignoreCase = true) == true
         _state.update {
             it.copy(
                 isLoading = false,
@@ -139,18 +133,54 @@ class ProfileEditViewModel @Inject constructor(
 
     fun save() {
         val current = _state.value
-        if (!current.loaded || current.isSaving) return
+        if (!current.loaded || current.isSaving || current.alreadyExists) return
+        val problem = current.inputProblem()
+        if (problem != null) {
+            trace.event("сохранение ${current.kind.name} отклонено: $problem")
+            _state.update { it.copy(error = problem) }
+            return
+        }
+        trace.event("сохранение ${current.kind.name} user=${current.userId}: старт")
         _state.update { it.copy(isSaving = true, error = null) }
         viewModelScope.launch {
             val result = if (current.kind == ProfileKind.READER) {
-                saveReaderProfile(current.toReader())
+                saveReaderProfile(
+                    current.toReader(),
+                    current.genres.size,
+                    current.feedbackTypes.size
+                )
             } else {
                 saveWriterProfile(current.toWriter())
             }
             result
-                .onSuccess { _state.update { it.copy(isSaving = false, saved = true) } }
+                .onSuccess {
+                    trace.event("сохранение ${current.kind.name} user=${current.userId}: успех")
+                    _state.update {
+                        it.copy(
+                            isSaving = false,
+                            saved = true,
+                            bio = "",
+                            experienceLevel = "",
+                            preferredLanguage = "",
+                            maxWordCount = "",
+                            isAvailable = false,
+                            cooperationType = "",
+                            price = "",
+                            selectedGenreIds = emptySet(),
+                            selectedFeedbackTypeIds = emptySet(),
+                            error = null
+                        )
+                    }
+                }
                 .onFailure { error ->
-                    _state.update { it.copy(isSaving = false, error = error.message) }
+                    trace.event("сохранение ${current.kind.name} user=${current.userId}: ${error.message}")
+                    val detail = error.message?.takeIf { it.isNotBlank() }
+                    val text = if (detail == null) {
+                        "Профиль не был создан, произошла ошибка"
+                    } else {
+                        "Профиль не был создан, произошла ошибка\n$detail"
+                    }
+                    _state.update { it.copy(isSaving = false, error = text) }
                 }
         }
     }
@@ -159,26 +189,6 @@ class ProfileEditViewModel @Inject constructor(
         opened = false
         open(kind, userId)
     }
-
-    private fun ProfileEditUiState.toReader(): ReaderProfile = ReaderProfile(
-        userId = userId,
-        bio = bio.trim(),
-        experienceLevel = experienceLevel,
-        preferredLanguage = preferredLanguage,
-        maxWordCount = maxWordCount.toIntOrNull() ?: 0,
-        isAvailable = isAvailable,
-        cooperationType = cooperationType,
-        price = price.replace(',', '.').toDoubleOrNull() ?: 0.0,
-        genreIds = selectedGenreIds.toList(),
-        feedbackTypeIds = selectedFeedbackTypeIds.toList()
-    )
-
-    private fun ProfileEditUiState.toWriter(): WriterProfile = WriterProfile(
-        userId = userId,
-        bio = bio.trim(),
-        experienceLevel = experienceLevel,
-        preferredLanguage = preferredLanguage
-    )
 
     private fun sanitizePrice(value: String): String {
         val cleaned = value.replace(',', '.').filter { it.isDigit() || it == '.' }
@@ -189,10 +199,5 @@ class ProfileEditViewModel @Inject constructor(
             cleaned.substring(0, dot + 1) + cleaned.substring(dot + 1).replace(".", "")
         }
         return singleDot.take(8)
-    }
-
-    private fun Double.toEditablePrice(): String {
-        if (this <= 0.0) return ""
-        return if (this % 1.0 == 0.0) toInt().toString() else toString()
     }
 }

@@ -31,6 +31,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -55,7 +56,7 @@ fun ProfileEditScreen(
     kind: ProfileKind,
     userId: String?,
     onBack: () -> Unit,
-    onSaved: () -> Unit,
+    onSaved: (String) -> Unit,
     viewModel: ProfileEditViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -64,7 +65,14 @@ fun ProfileEditScreen(
         viewModel.open(kind, userId)
     }
     LaunchedEffect(state.saved) {
-        if (state.saved) onSaved()
+        if (state.saved) {
+            val text = if (kind == ProfileKind.READER) {
+                "Профиль бета-ридера создан успешно"
+            } else {
+                "Профиль писателя создан успешно"
+            }
+            onSaved(text)
+        }
     }
 
     val title = if (kind == ProfileKind.READER) "Профиль ридера" else "Профиль писателя"
@@ -242,17 +250,43 @@ private fun ProfileForm(
             )
         }
 
-        if (state.error != null) {
+        val existsText = if (state.alreadyExists) {
+            if (kind == ProfileKind.READER) "Профиль бета-ридера уже создан" else "Профиль писателя уже создан"
+        } else {
+            null
+        }
+        val missing = if (existsText == null) state.inputProblem() else null
+        if (existsText != null) {
             Text(
-                text = state.error,
-                color = MaterialTheme.colorScheme.error,
+                text = existsText,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+        if (state.error != null) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.small,
+                color = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer
+            ) {
+                Text(
+                    text = state.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                )
+            }
+        } else if (missing != null) {
+            Text(
+                text = missing,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium
             )
         }
 
         Button(
             onClick = onSave,
-            enabled = state.loaded && !state.isSaving,
+            enabled = state.loaded && !state.isSaving && !state.alreadyExists && missing == null,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(BetafySizes.buttonHeight)

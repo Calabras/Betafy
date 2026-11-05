@@ -10,6 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import com.betafy.feature.auth.presentation.LoginScreen
 import com.betafy.feature.auth.presentation.RegisterScreen
 import com.betafy.feature.auth.presentation.SessionViewModel
+import com.betafy.feature.profile.presentation.ProfileCabinetViewModel
 import com.betafy.feature.profile.presentation.ProfileEditScreen
 import com.betafy.feature.profile.presentation.ProfileKind
 import com.betafy.feature.profile.presentation.ProfileRoutes
@@ -24,6 +25,7 @@ private const val REGISTER = "register"
 private const val HOME = "home"
 
 private const val REGISTERED_KEY = "registered"
+private const val PROFILE_NOTICE_KEY = "profile_notice"
 
 private const val SPLASH_DURATION = 5000L
 
@@ -121,9 +123,20 @@ fun AppNavigation() {
         // HOME
         // ====================================================
 
-        composable(HOME) {
+        composable(HOME) { entry ->
+            val profileNotice by entry.savedStateHandle
+                .getStateFlow(PROFILE_NOTICE_KEY, "")
+                .collectAsStateWithLifecycle()
+            val cabinet: ProfileCabinetViewModel = hiltViewModel()
+            val cabinetState by cabinet.state.collectAsStateWithLifecycle()
+            LaunchedEffect(profileNotice) {
+                cabinet.refresh(session.currentUserId())
+            }
 
             NavigationScreen(
+                profileNotice = profileNotice,
+                readerCreateEnabled = cabinetState.checked && !cabinetState.readerExists,
+                writerCreateEnabled = cabinetState.checked && !cabinetState.writerExists,
                 onLogout = {
                     session.signOut()
 
@@ -135,8 +148,14 @@ fun AppNavigation() {
                         launchSingleTop = true
                     }
                 },
-                onCreateReader = { navController.navigate(ProfileRoutes.READER) },
-                onCreateWriter = { navController.navigate(ProfileRoutes.WRITER) }
+                onCreateReader = {
+                    entry.savedStateHandle[PROFILE_NOTICE_KEY] = ""
+                    navController.navigate(ProfileRoutes.READER)
+                },
+                onCreateWriter = {
+                    entry.savedStateHandle[PROFILE_NOTICE_KEY] = ""
+                    navController.navigate(ProfileRoutes.WRITER)
+                }
             )
         }
 
@@ -145,7 +164,12 @@ fun AppNavigation() {
                 kind = ProfileKind.READER,
                 userId = session.currentUserId(),
                 onBack = { navController.popBackStack() },
-                onSaved = { navController.popBackStack() }
+                onSaved = { message ->
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(PROFILE_NOTICE_KEY, message)
+                    navController.popBackStack()
+                }
             )
         }
 
@@ -154,7 +178,12 @@ fun AppNavigation() {
                 kind = ProfileKind.WRITER,
                 userId = session.currentUserId(),
                 onBack = { navController.popBackStack() },
-                onSaved = { navController.popBackStack() }
+                onSaved = { message ->
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(PROFILE_NOTICE_KEY, message)
+                    navController.popBackStack()
+                }
             )
         }
     }

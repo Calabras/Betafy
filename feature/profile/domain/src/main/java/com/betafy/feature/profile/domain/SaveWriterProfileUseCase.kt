@@ -6,15 +6,8 @@ class SaveWriterProfileUseCase(
     private val repository: ProfileRepository
 ) {
     suspend operator fun invoke(profile: WriterProfile): Result<Unit> {
-        if (profile.userId.isBlank()) {
-            return Result.failure(IllegalArgumentException("Нет пользователя"))
-        }
-        if (profile.experienceLevel.isBlank()) {
-            return Result.failure(IllegalArgumentException("Выберите опыт писательства"))
-        }
-        if (profile.preferredLanguage.isBlank()) {
-            return Result.failure(IllegalArgumentException("Выберите язык произведений"))
-        }
+        val problem = ProfileRules.writerProblem(profile)
+        if (problem != null) return Result.failure(IllegalArgumentException(problem))
         return repository.saveWriterProfile(profile)
     }
 }
