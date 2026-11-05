@@ -1,4 +1,3 @@
-
 package com.betafy.feature.auth.presentation.components
 
 import androidx.compose.foundation.background
@@ -17,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -29,12 +27,51 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 import com.betafy.betafyapp.core.uikit.components.BetafyLogo
-import com.betafy.betafyapp.core.uikit.theme.brandColors
 import com.betafy.betafyapp.core.uikit.theme.extendedColors
 
 enum class AuthTab {
     Login,
     Register
+}
+
+// ====================================================
+// ФИКСИРОВАННЫЕ ЦВЕТА ПЛАШЕК (не зависят от темы)
+// ====================================================
+
+private data class StickerColors(
+    val background: Color,
+    val text: Color
+)
+
+private object HeroStickerPalette {
+    val plot = StickerColors(
+        background = Color(0xFFFFD9E0),
+        text = Color(0xFF8A2D45)
+    )
+    val style = StickerColors(
+        background = Color(0xFFD6E6FF),
+        text = Color(0xFF1D4F91)
+    )
+    val heroes = StickerColors(
+        background = Color(0xFFFFF0B3),
+        text = Color(0xFF7A5A00)
+    )
+    val draft = StickerColors(
+        background = Color(0xFFE5DBFF),
+        text = Color(0xFF4E3886)
+    )
+    val reader = StickerColors(
+        background = Color(0xFFCDEFD8),
+        text = Color(0xFF1F6B3A)
+    )
+    val stories = StickerColors(
+        background = Color(0xFFFFD6B8),
+        text = Color(0xFF8B370C)
+    )
+    val dialogue = StickerColors(
+        background = Color(0xFFFFD9E0),
+        text = Color(0xFF8A2D45)
+    )
 }
 
 // ====================================================
@@ -47,8 +84,6 @@ fun AuthHero(
     height: Dp = 180.dp
 ) {
     val colors = MaterialTheme.colorScheme
-    val brand = MaterialTheme.brandColors
-    val extended = MaterialTheme.extendedColors
 
     BoxWithConstraints(
         modifier = modifier
@@ -61,55 +96,10 @@ fun AuthHero(
         // Зелёная карточка — 75% доступной ширины.
         val greenWidth = heroWidth * 0.75f
 
-        // Размеры плашек зависят от ширины карточки.
-        // Немного увеличены относительно предыдущей версии.
-        val stickerHeight = 36.dp  //greenWidth * 0.145f
+        val stickerHeight = 36.dp
         val stickerFontSize = (greenWidth.value * 0.049f).sp
         val stickerBorderWidth = greenWidth * 0.004f
         val stickerPadding = greenWidth * 0.048f
-
-        // ------------------------------------------------
-        // ЦВЕТА ПЛАШЕК
-        // ------------------------------------------------
-
-        val plotColor = brand.blush.copy(alpha = 1f)
-
-        val styleColor = extended.info.colorContainer.copy(alpha = 1f)
-
-        val heroesColor = brand.butter.copy(alpha = 1f)
-
-        val draftColor = brand.lavender.copy(alpha = 1f)
-
-        val readerColor = brand.mint.copy(alpha = 1f)
-
-        // Мягкий персиковый оттенок на основе фирменного оранжевого.
-        val storiesColor = lerp(
-            brand.tangerine,
-            brand.cream,
-            0.58f
-        ).copy(alpha = 1f)
-
-        val dialogueColor = brand.blush.copy(alpha = 1f)
-
-        // ------------------------------------------------
-        // ЦВЕТА ТЕКСТА И ОБВОДКИ
-        // ------------------------------------------------
-
-        val plotText = extended.blush.onColorContainer
-
-        val styleText = extended.info.onColorContainer
-
-        val heroesText = extended.warning.onColorContainer
-
-        // Тёмно-фиолетовый.
-        val draftText = Color(0xFF4E3886)
-
-        val readerText = extended.success.onColorContainer
-
-        // Тёмно-оранжевый.
-        val storiesText = Color(0xFF8B370C)
-
-        val dialogueText = extended.blush.onColorContainer
 
         // ------------------------------------------------
         // ЗЕЛЁНАЯ КАРТОЧКА
@@ -137,8 +127,8 @@ fun AuthHero(
 
         HeroSticker(
             text = "сюжет",
-            backgroundColor = plotColor,
-            textColor = plotText,
+            backgroundColor = HeroStickerPalette.plot.background,
+            textColor = HeroStickerPalette.plot.text,
             rotation = -12f,
             height = stickerHeight,
             fontSize = stickerFontSize,
@@ -158,8 +148,8 @@ fun AuthHero(
 
         HeroSticker(
             text = "стиль",
-            backgroundColor = styleColor,
-            textColor = styleText,
+            backgroundColor = HeroStickerPalette.style.background,
+            textColor = HeroStickerPalette.style.text,
             rotation = 3f,
             height = stickerHeight,
             fontSize = stickerFontSize,
@@ -167,9 +157,7 @@ fun AuthHero(
             horizontalPadding = stickerPadding,
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .offset(
-                    y = heroHeight * 0.02f
-                )
+                .offset(y = heroHeight * 0.02f)
         )
 
         // ------------------------------------------------
@@ -178,8 +166,8 @@ fun AuthHero(
 
         HeroSticker(
             text = "герои",
-            backgroundColor = heroesColor,
-            textColor = heroesText,
+            backgroundColor = HeroStickerPalette.heroes.background,
+            textColor = HeroStickerPalette.heroes.text,
             rotation = 12f,
             height = stickerHeight,
             fontSize = stickerFontSize,
@@ -199,8 +187,8 @@ fun AuthHero(
 
         HeroSticker(
             text = "черновик",
-            backgroundColor = draftColor,
-            textColor = draftText,
+            backgroundColor = HeroStickerPalette.draft.background,
+            textColor = HeroStickerPalette.draft.text,
             rotation = 15f,
             height = stickerHeight,
             fontSize = stickerFontSize,
@@ -220,8 +208,8 @@ fun AuthHero(
 
         HeroSticker(
             text = "бета-ридер",
-            backgroundColor = readerColor,
-            textColor = readerText,
+            backgroundColor = HeroStickerPalette.reader.background,
+            textColor = HeroStickerPalette.reader.text,
             rotation = -15f,
             height = stickerHeight,
             fontSize = stickerFontSize,
@@ -241,8 +229,8 @@ fun AuthHero(
 
         HeroSticker(
             text = "истории",
-            backgroundColor = storiesColor,
-            textColor = storiesText,
+            backgroundColor = HeroStickerPalette.stories.background,
+            textColor = HeroStickerPalette.stories.text,
             rotation = -12f,
             height = stickerHeight,
             fontSize = stickerFontSize,
@@ -262,8 +250,8 @@ fun AuthHero(
 
         HeroSticker(
             text = "диалоги",
-            backgroundColor = dialogueColor,
-            textColor = dialogueText,
+            backgroundColor = HeroStickerPalette.dialogue.background,
+            textColor = HeroStickerPalette.dialogue.text,
             rotation = 10f,
             height = stickerHeight,
             fontSize = stickerFontSize,
