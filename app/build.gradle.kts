@@ -50,6 +50,8 @@ dependencies {
     implementation(project(":feature:auth:di"))
     implementation(project(":feature:profile:presentation"))
     implementation(project(":feature:profile:di"))
+    implementation(project(":feature:match:presentation"))
+    implementation(project(":feature:match:di"))
     implementation(project(":app:presentation"))
     implementation(project(":core:ui-kit"))
     implementation(libs.androidx.activity.ktx)

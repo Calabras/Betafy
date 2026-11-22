@@ -10,6 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import com.betafy.feature.auth.presentation.LoginScreen
 import com.betafy.feature.auth.presentation.RegisterScreen
 import com.betafy.feature.auth.presentation.SessionViewModel
+import com.betafy.feature.match.presentation.MatchScreen
 import com.betafy.feature.profile.presentation.ProfileCabinetViewModel
 import com.betafy.feature.profile.presentation.ProfileEditScreen
 import com.betafy.feature.profile.presentation.ProfileKind
@@ -155,6 +156,9 @@ fun AppNavigation() {
                 onCreateWriter = {
                     entry.savedStateHandle[PROFILE_NOTICE_KEY] = ""
                     navController.navigate(ProfileRoutes.WRITER)
+                },
+                matchContent = {
+                    MatchScreen(userId = session.currentUserId().orEmpty())
                 }
             )
         }
