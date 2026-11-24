@@ -34,7 +34,8 @@ data class StoredMatch(
     val requestId: String,
     val readerId: String,
     val status: String,
-    val initiatorId: String = ""
+    val initiatorId: String = "",
+    val createdAt: Long = 0L
 )
 
 data class IncomingInterest(

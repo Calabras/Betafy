@@ -13,7 +13,7 @@ class LoadMatchBoardUseCase(
             return Result.failure(IllegalStateException("Нужно войти в аккаунт"))
         }
         return repository.loadCatalog().map { catalog ->
-            MatchBoardBuilder.build(catalog, userId, today())
+            MatchBoardBuilder.build(catalog, userId, today(), System.currentTimeMillis())
         }
     }
 

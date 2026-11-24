@@ -73,7 +73,8 @@ object MatchSnapshotParser {
                 requestId = raw["request_id"]?.toString().orEmpty(),
                 readerId = raw["reader_id"]?.toString().orEmpty(),
                 status = raw["status"]?.toString().orEmpty(),
-                initiatorId = raw["initiator_id"]?.toString().orEmpty()
+                initiatorId = raw["initiator_id"]?.toString().orEmpty(),
+                createdAt = raw["created_at"].asLong()
             )
         }
         return MatchCatalog(
@@ -153,6 +154,14 @@ private fun Any?.asRecord(): Map<String, Any?>? {
 }
 
 internal fun Any?.asNodeMap(): Map<String, Any?> = asRecord().orEmpty()
+
+internal fun Any?.asLong(): Long = when (this) {
+    is Long -> this
+    is Int -> toLong()
+    is Double -> toLong()
+    is String -> toLongOrNull() ?: 0L
+    else -> 0L
+}
 
 internal fun Any?.asInt(): Int = when (this) {
     is Int -> this

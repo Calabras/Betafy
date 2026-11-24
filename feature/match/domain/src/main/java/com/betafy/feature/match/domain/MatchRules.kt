@@ -12,9 +12,10 @@ object MatchRules {
         request: RequestCard,
         reader: ReaderCard,
         matches: List<StoredMatch>,
-        today: String
+        today: String,
+        now: Long = 0L
     ): Int? {
-        val raw = rawPercent(work, request, reader, matches, today) ?: return null
+        val raw = rawPercent(work, request, reader, matches, today, now) ?: return null
         return round(raw).toInt().coerceIn(0, 100)
     }
 
@@ -38,13 +39,14 @@ object MatchRules {
         request: RequestCard,
         reader: ReaderCard,
         matches: List<StoredMatch>,
-        today: String
+        today: String,
+        now: Long
     ): Double? {
         if (request.workId != work.id) return null
         if (!isOpen(request, today)) return null
         if (!reader.isAvailable) return null
         if (reader.userId == work.writerId) return null
-        if (blocked(matches, request.id, reader.userId)) return null
+        if (blocked(matches, request.id, reader.userId, now)) return null
         if (!sameLanguage(work.language, reader.preferredLanguage)) return null
         val volume = volumeFactor(work.wordCount, reader.maxWordCount)
         if (volume is Factor.Reject) return null
@@ -70,16 +72,18 @@ object MatchRules {
         return weighted / used * 100.0
     }
 
-    private fun blocked(matches: List<StoredMatch>, requestId: String, readerId: String): Boolean =
+    private fun blocked(matches: List<StoredMatch>, requestId: String, readerId: String, now: Long): Boolean =
         matches.any { match ->
             match.requestId == requestId &&
                 match.readerId == readerId &&
-                blocks(match.status)
+                blocks(match, now)
         }
 
-    private fun blocks(status: String): Boolean {
-        val value = status.trim().lowercase()
-        return value == WAITING || value == ACCEPTED
+    private fun blocks(match: StoredMatch, now: Long): Boolean {
+        val value = match.status.trim().lowercase()
+        if (value == ACCEPTED) return true
+        if (value != WAITING) return false
+        return swipeStillHidden(match.createdAt, now)
     }
 
     private fun sameLanguage(workLanguage: String, readerLanguage: String): Boolean {

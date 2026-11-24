@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.betafy.feature.match.domain.LoadIncomingInterestsUseCase
 import com.betafy.feature.match.domain.LoadMatchBoardUseCase
 import com.betafy.feature.match.domain.ProposeMatchUseCase
+import com.betafy.feature.match.domain.SwipeLog
 import com.betafy.feature.match.domain.model.MatchLine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -29,12 +30,12 @@ data class MatchUiState(
 class MatchViewModel @Inject constructor(
     private val loadBoard: LoadMatchBoardUseCase,
     private val propose: ProposeMatchUseCase,
-    private val incoming: LoadIncomingInterestsUseCase
+    private val incoming: LoadIncomingInterestsUseCase,
+    private val swipes: SwipeLog
 ) : ViewModel() {
     private val _state = MutableStateFlow(MatchUiState())
     val state: StateFlow<MatchUiState> = _state.asStateFlow()
     private var userId: String = ""
-    private val skipped = mutableSetOf<String>()
 
     fun open(userId: String) {
         this.userId = userId
@@ -50,11 +51,13 @@ class MatchViewModel @Inject constructor(
     }
 
     fun skip(line: MatchLine) {
-        skipped += line.key
+        val now = System.currentTimeMillis()
+        swipes.remember(userId, line.key, now)
+        val hidden = swipes.hidden(userId, now)
         _state.update { state ->
             state.copy(
-                writerLines = state.writerLines.filter { it.key !in skipped },
-                readerLines = state.readerLines.filter { it.key !in skipped }
+                writerLines = state.writerLines.filter { it.key !in hidden },
+                readerLines = state.readerLines.filter { it.key !in hidden }
             )
         }
     }
@@ -89,13 +92,14 @@ class MatchViewModel @Inject constructor(
         _state.update { it.copy(loading = true, error = null, notice = notice, pendingKey = null) }
         loadBoard(userId).fold(
             onSuccess = { board ->
+                val hidden = swipes.hidden(userId, System.currentTimeMillis())
                 _state.value = MatchUiState(
                     loading = false,
                     notice = notice,
                     hasReaderProfile = board.hasReaderProfile,
                     hasOpenRequests = board.hasOpenRequests,
-                    writerLines = board.writerLines.filter { it.key !in skipped },
-                    readerLines = board.readerLines.filter { it.key !in skipped }
+                    writerLines = board.writerLines.filter { it.key !in hidden },
+                    readerLines = board.readerLines.filter { it.key !in hidden }
                 )
             },
             onFailure = { error ->

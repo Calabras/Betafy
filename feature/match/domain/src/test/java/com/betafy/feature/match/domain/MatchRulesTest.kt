@@ -33,6 +33,16 @@ class MatchRulesTest {
     }
 
     @Test
+    fun waitingMatchReturnsAfterTwoDaysAndAcceptedStaysHidden() {
+        val at = 1_700_000_000_000L
+        val waiting = miniCatalog(matches = listOf(StoredMatch("m1", "req_north", "ira", "ожидает", createdAt = at)))
+        assertEquals(listOf("Борис" to 52), pairs(waiting, "anna", at + 60_000))
+        assertEquals(listOf("Ира" to 100, "Борис" to 52), pairs(waiting, "anna", at + SWIPE_WINDOW_MILLIS))
+        val accepted = miniCatalog(matches = listOf(StoredMatch("m1", "req_north", "ira", "принят", createdAt = at)))
+        assertEquals(listOf("Борис" to 52), pairs(accepted, "anna", at + SWIPE_WINDOW_MILLIS))
+    }
+
+    @Test
     fun sameScorePutsMoreExperiencedReaderFirst() {
         val ira = reader("ira", "Нет опыта", "Русский", 100_000, true, "бесплатно", listOf("fantasy", "detective"), listOf("plot", "characters"))
         val vera = reader("vera", "Больше 3 лет", "Русский", 100_000, true, "бесплатно", listOf("fantasy", "detective"), listOf("plot", "characters"))
@@ -59,8 +69,8 @@ class MatchRulesTest {
         assertEquals(100, MatchRules.percent(work, request, reader, emptyList(), TODAY))
     }
 
-    private fun pairs(catalog: MatchCatalog, userId: String): List<Pair<String, Int>> =
-        MatchBoardBuilder.build(catalog, userId, TODAY).writerLines.map { it.counterpart to it.score }
+    private fun pairs(catalog: MatchCatalog, userId: String, now: Long = 0L): List<Pair<String, Int>> =
+        MatchBoardBuilder.build(catalog, userId, TODAY, now).writerLines.map { it.counterpart to it.score }
 
     private fun requests(catalog: MatchCatalog, userId: String): List<Pair<String, Int>> =
         MatchBoardBuilder.build(catalog, userId, TODAY).readerLines.map { it.title to it.score }

@@ -9,14 +9,14 @@ import com.betafy.feature.match.domain.model.RequestCard
 import com.betafy.feature.match.domain.model.WorkCard
 
 object MatchBoardBuilder {
-    fun build(catalog: MatchCatalog, userId: String, today: String): MatchBoard {
+    fun build(catalog: MatchCatalog, userId: String, today: String, now: Long = 0L): MatchBoard {
         val reader = catalog.readers.firstOrNull { it.userId == userId }
         val ownWorkIds = catalog.works.filter { it.writerId == userId }.map { it.id }.toSet()
         val openOwn = catalog.requests.filter { it.workId in ownWorkIds && MatchRules.isOpen(it, today) }
         val writerLines = openOwn.flatMap { request ->
             val work = catalog.works.firstOrNull { it.id == request.workId } ?: return@flatMap emptyList()
             catalog.readers.mapNotNull { candidate ->
-                line(catalog, work, request, candidate, today, writerSide = true)
+                line(catalog, work, request, candidate, today, now, writerSide = true)
             }
         }.sortedWith(writerOrder(catalog))
         val readerLines = if (reader == null) {
@@ -25,7 +25,7 @@ object MatchBoardBuilder {
             catalog.requests.mapNotNull { request ->
                 val work = catalog.works.firstOrNull { it.id == request.workId } ?: return@mapNotNull null
                 if (work.writerId == userId) return@mapNotNull null
-                line(catalog, work, request, reader, today, writerSide = false)
+                line(catalog, work, request, reader, today, now, writerSide = false)
             }.sortedWith(compareByDescending<MatchLine> { it.score }.thenBy { it.title })
         }
         return MatchBoard(
@@ -42,9 +42,10 @@ object MatchBoardBuilder {
         request: RequestCard,
         reader: ReaderCard,
         today: String,
+        now: Long,
         writerSide: Boolean
     ): MatchLine? {
-        val score = MatchRules.percent(work, request, reader, catalog.matches, today) ?: return null
+        val score = MatchRules.percent(work, request, reader, catalog.matches, today, now) ?: return null
         val counterpartId = if (writerSide) reader.userId else work.writerId
         val person = catalog.people[counterpartId]
         val username = person?.username?.takeIf { it.isNotBlank() }
