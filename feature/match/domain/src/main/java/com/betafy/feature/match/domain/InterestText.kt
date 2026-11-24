@@ -9,5 +9,5 @@ fun interestText(name: String, username: String): String {
         nick.isNotBlank() -> "@$nick"
         else -> "Пользователь"
     }
-    return "Тобой заинтересовался $who"
+    return "Уважаемый ридер, тобой заинтересовался писатель $who"
 }

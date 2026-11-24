@@ -132,14 +132,6 @@ private fun WriterSeek(
                     onReject = { onReject(line) },
                     modifier = Modifier.weight(1f)
                 )
-                Text(
-                    text = "1 из ${state.writerLines.size}",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
     }

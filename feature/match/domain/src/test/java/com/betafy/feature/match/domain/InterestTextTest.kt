@@ -6,8 +6,8 @@ import org.junit.Test
 class InterestTextTest {
     @Test
     fun namesThePersonAndTheNick() {
-        assertEquals("Тобой заинтересовался Миа (@Миа)", interestText("Миа", "Миа"))
-        assertEquals("Тобой заинтересовался Анна (@anna)", interestText("Анна", "anna"))
-        assertEquals("Тобой заинтересовался Пользователь", interestText("", ""))
+        assertEquals("Уважаемый ридер, тобой заинтересовался писатель Миа (@Миа)", interestText("Миа", "Миа"))
+        assertEquals("Уважаемый ридер, тобой заинтересовался писатель Анна (@anna)", interestText("Анна", "anna"))
+        assertEquals("Уважаемый ридер, тобой заинтересовался писатель Пользователь", interestText("", ""))
     }
 }

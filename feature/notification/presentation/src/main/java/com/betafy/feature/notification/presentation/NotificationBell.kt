@@ -332,7 +332,10 @@ private fun ReadPage(
             )
         }
         Text(text = item.text, style = MaterialTheme.typography.bodyLarge)
-        CardButton(text = "Закрыть", onClick = onClose)
+        CardButton(
+            text = if (item.type == NotificationKinds.INTEREST) "Написать" else "Закрыть",
+            onClick = onClose
+        )
         TextButton(
             onClick = onAskDelete,
             modifier = Modifier
@@ -572,7 +575,7 @@ private fun notificationStamp(id: String): String? {
 
 private fun titleOf(type: String): String = when (type) {
     NotificationKinds.PROFILE -> "Профиль"
-    NotificationKinds.INTEREST -> "Интерес"
+    NotificationKinds.INTEREST -> "У вас новый мэтч!"
     "match" -> "Мэтч"
     else -> "Уведомление"
 }
