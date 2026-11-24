@@ -29,6 +29,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -49,6 +50,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.betafy.betafyapp.core.uikit.theme.BetafySizes
 import com.betafy.betafyapp.core.uikit.theme.BetafySpacing
+import com.betafy.betafyapp.core.uikit.theme.extendedColors
 import com.betafy.feature.profile.domain.model.ProfileChoices
 
 @Composable
@@ -74,6 +76,7 @@ fun ProfileEditScreen(
                 "Профиль писателя создан успешно"
             }
             onSaved(text)
+            viewModel.consumeSaved()
         }
     }
 
@@ -150,6 +153,7 @@ fun ProfileEditScreen(
                     onPriceChange = viewModel::onPriceChange,
                     onToggleGenre = viewModel::toggleGenre,
                     onToggleFeedback = viewModel::toggleFeedbackType,
+                    onEdit = viewModel::startEditing,
                     onSave = viewModel::save
                 )
             }
@@ -174,6 +178,7 @@ private fun ProfileForm(
     onPriceChange: (String) -> Unit,
     onToggleGenre: (String) -> Unit,
     onToggleFeedback: (String) -> Unit,
+    onEdit: () -> Unit,
     onSave: () -> Unit
 ) {
     Column(
@@ -186,7 +191,7 @@ private fun ProfileForm(
             ),
         verticalArrangement = Arrangement.spacedBy(BetafySpacing.sm)
     ) {
-        val locked = state.alreadyExists
+        val locked = state.alreadyExists && !state.editing
         ProfileTextField(
             value = state.bio,
             onValueChange = onBioChange,
@@ -264,7 +269,7 @@ private fun ProfileForm(
             )
         }
 
-        val missing = if (state.alreadyExists) null else state.inputProblem()
+        val missing = if (locked) null else state.inputProblem()
         if (state.error != null) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -278,6 +283,12 @@ private fun ProfileForm(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
                 )
             }
+        } else if (state.notice != null) {
+            Text(
+                text = state.notice,
+                color = MaterialTheme.extendedColors.success.color,
+                style = MaterialTheme.typography.bodyMedium
+            )
         } else if (missing != null) {
             Text(
                 text = missing,
@@ -286,13 +297,26 @@ private fun ProfileForm(
             )
         }
 
-        if (!state.alreadyExists) {
+        if (state.alreadyExists && !state.editing) {
+            OutlinedButton(
+                onClick = onEdit,
+                enabled = !state.isSaving,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(BetafySizes.buttonHeight),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Text("Редактировать", style = MaterialTheme.typography.titleMedium)
+            }
+        }
+        if (!state.alreadyExists || state.editing || state.isSaving) {
             Button(
                 onClick = onSave,
                 enabled = state.loaded && !state.isSaving && missing == null,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(BetafySizes.buttonHeight)
+                    .height(BetafySizes.buttonHeight),
+                shape = MaterialTheme.shapes.medium
             ) {
                 if (state.isSaving) {
                     CircularProgressIndicator()

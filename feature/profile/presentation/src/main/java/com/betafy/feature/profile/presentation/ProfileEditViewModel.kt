@@ -143,9 +143,19 @@ class ProfileEditViewModel @Inject constructor(
         state.copy(selectedFeedbackTypeIds = next, error = null)
     }
 
+    fun startEditing() {
+        _state.update { it.copy(editing = true, error = null, notice = null) }
+    }
+
+    fun consumeSaved() {
+        _state.update { it.copy(saved = false) }
+    }
+
     fun save() {
         val current = _state.value
-        if (!current.loaded || current.isSaving || current.alreadyExists) return
+        val creating = !current.alreadyExists
+        if (!current.loaded || current.isSaving) return
+        if (!creating && !current.editing) return
         val problem = current.inputProblem()
         if (problem != null) {
             trace.event("сохранение ${current.kind.name} отклонено: $problem")
@@ -153,7 +163,7 @@ class ProfileEditViewModel @Inject constructor(
             return
         }
         trace.event("сохранение ${current.kind.name} user=${current.userId}: старт")
-        _state.update { it.copy(isSaving = true, error = null) }
+        _state.update { it.copy(isSaving = true, error = null, notice = null) }
         viewModelScope.launch {
             val result = if (current.kind == ProfileKind.READER) {
                 saveReaderProfile(
@@ -170,8 +180,10 @@ class ProfileEditViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             isSaving = false,
-                            saved = true,
+                            saved = creating,
                             alreadyExists = true,
+                            editing = false,
+                            notice = if (creating) null else "Изменения сохранены",
                             error = null
                         )
                     }
@@ -179,10 +191,11 @@ class ProfileEditViewModel @Inject constructor(
                 .onFailure { error ->
                     trace.event("сохранение ${current.kind.name} user=${current.userId}: ${error.message}")
                     val detail = error.message?.takeIf { it.isNotBlank() }
+                    val action = if (creating) "создан" else "обновлен"
                     val text = if (detail == null) {
-                        "Профиль не был создан, произошла ошибка"
+                        "Профиль не был $action, произошла ошибка"
                     } else {
-                        "Профиль не был создан, произошла ошибка\n$detail"
+                        "Профиль не был $action, произошла ошибка\n$detail"
                     }
                     _state.update { it.copy(isSaving = false, error = text) }
                 }
