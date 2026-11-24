@@ -49,6 +49,7 @@ fun NavigationScreen(
     readerCreateEnabled: Boolean = true,
     writerCreateEnabled: Boolean = true,
     bell: (@Composable (NavigationBottomModel) -> Unit)? = null,
+    matchContent: @Composable () -> Unit = { PlaceholderScreen("Мэтч") },
     navController: NavHostController = rememberNavController()
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -76,7 +77,7 @@ fun NavigationScreen(
                 modifier = Modifier.weight(1f)
             ) {
                 composable(NavigationBottomModel.Search.route) { PlaceholderScreen("Поиск") }
-                composable(NavigationBottomModel.Match.route) { PlaceholderScreen("Мэтч") }
+                composable(NavigationBottomModel.Match.route) { matchContent() }
                 composable(NavigationBottomModel.Chats.route) { PlaceholderScreen("Чаты") }
                 composable(NavigationBottomModel.Profile.route) {
                     ProfilePlaceholder(

@@ -13,6 +13,7 @@ import androidx.navigation.compose.rememberNavController
 import com.betafy.feature.auth.presentation.LoginScreen
 import com.betafy.feature.auth.presentation.RegisterScreen
 import com.betafy.feature.auth.presentation.SessionViewModel
+import com.betafy.feature.match.presentation.MatchScreen
 import com.betafy.feature.notification.presentation.NotificationBell
 import com.betafy.feature.notification.presentation.NotificationInboxViewModel
 import com.betafy.feature.notification.presentation.NotificationKinds
@@ -161,6 +162,9 @@ fun AppNavigation() {
                 },
                 onCreateWriter = {
                     navController.navigate(ProfileRoutes.WRITER)
+                },
+                matchContent = {
+                    MatchScreen(userId = session.currentUserId().orEmpty())
                 },
                 bell = { item ->
                     NotificationBell(
