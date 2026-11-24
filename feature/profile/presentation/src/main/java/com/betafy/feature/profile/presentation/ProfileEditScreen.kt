@@ -29,15 +29,12 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -52,7 +49,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.betafy.betafyapp.core.uikit.theme.BetafySizes
 import com.betafy.betafyapp.core.uikit.theme.BetafySpacing
-import com.betafy.betafyapp.core.uikit.theme.extendedColors
 import com.betafy.feature.profile.domain.model.ProfileChoices
 
 @Composable
@@ -61,10 +57,7 @@ fun ProfileEditScreen(
     userId: String?,
     onBack: () -> Unit,
     onSaved: (String) -> Unit,
-    embedded: Boolean = false,
-    viewModelKey: String? = null,
-    footer: @Composable () -> Unit = {},
-    viewModel: ProfileEditViewModel = hiltViewModel(key = viewModelKey)
+    viewModel: ProfileEditViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -79,7 +72,6 @@ fun ProfileEditScreen(
                 "Профиль писателя создан успешно"
             }
             onSaved(text)
-            viewModel.consumeSaved()
         }
     }
 
@@ -92,21 +84,19 @@ fun ProfileEditScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .then(if (embedded) Modifier else Modifier.safeDrawingPadding())
+            .safeDrawingPadding()
     ) {
-        if (!embedded) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Назад"
-                    )
-                }
-                Text(text = title, style = MaterialTheme.typography.titleLarge)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Назад"
+                )
             }
+            Text(text = title, style = MaterialTheme.typography.titleLarge)
         }
 
         when {
@@ -137,8 +127,6 @@ fun ProfileEditScreen(
                     TextButton(onClick = { viewModel.retry(kind, userId) }) {
                         Text("Повторить")
                     }
-                    Spacer(Modifier.height(BetafySpacing.lg))
-                    footer()
                 }
             }
 
@@ -158,9 +146,7 @@ fun ProfileEditScreen(
                     onPriceChange = viewModel::onPriceChange,
                     onToggleGenre = viewModel::toggleGenre,
                     onToggleFeedback = viewModel::toggleFeedbackType,
-                    onEdit = viewModel::startEditing,
-                    onSave = viewModel::save,
-                    footer = footer
+                    onSave = viewModel::save
                 )
             }
         }
@@ -184,9 +170,7 @@ private fun ProfileForm(
     onPriceChange: (String) -> Unit,
     onToggleGenre: (String) -> Unit,
     onToggleFeedback: (String) -> Unit,
-    onEdit: () -> Unit,
-    onSave: () -> Unit,
-    footer: @Composable () -> Unit
+    onSave: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -198,28 +182,24 @@ private fun ProfileForm(
             ),
         verticalArrangement = Arrangement.spacedBy(BetafySpacing.sm)
     ) {
-        val locked = state.alreadyExists && !state.editing
         ProfileTextField(
             value = state.bio,
             onValueChange = onBioChange,
             label = bioLabel,
             singleLine = false,
-            readOnly = locked,
             modifier = Modifier.heightIn(min = 120.dp)
         )
         ChoiceField(
             label = experienceLabel,
             value = state.experienceLevel,
             options = optionsWithCurrent(ProfileChoices.experienceLevels, state.experienceLevel),
-            onSelect = onExperienceChange,
-            locked = locked
+            onSelect = onExperienceChange
         )
         ChoiceField(
             label = languageLabel,
             value = state.preferredLanguage,
             options = optionsWithCurrent(ProfileChoices.languages, state.preferredLanguage),
-            onSelect = onLanguageChange,
-            locked = locked
+            onSelect = onLanguageChange
         )
 
         if (kind == ProfileKind.READER) {
@@ -227,8 +207,7 @@ private fun ProfileForm(
                 value = state.maxWordCount,
                 onValueChange = onMaxWordCountChange,
                 label = "Максимальный объём (слов)",
-                keyboardType = KeyboardType.Number,
-                readOnly = locked
+                keyboardType = KeyboardType.Number
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -236,43 +215,23 @@ private fun ProfileForm(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("Готов брать работы", style = MaterialTheme.typography.bodyLarge)
-                val success = MaterialTheme.extendedColors.success
-                val idleTrack = MaterialTheme.colorScheme.surfaceContainerHighest
-                val idleThumb = MaterialTheme.colorScheme.outline
                 Switch(
                     checked = state.isAvailable,
-                    onCheckedChange = onAvailableChange,
-                    enabled = !locked,
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = success.onColor,
-                        checkedTrackColor = success.color,
-                        checkedBorderColor = success.color,
-                        uncheckedThumbColor = idleThumb,
-                        uncheckedTrackColor = idleTrack,
-                        uncheckedBorderColor = idleThumb,
-                        disabledCheckedThumbColor = success.onColor,
-                        disabledCheckedTrackColor = success.color,
-                        disabledCheckedBorderColor = success.color,
-                        disabledUncheckedThumbColor = idleThumb,
-                        disabledUncheckedTrackColor = idleTrack,
-                        disabledUncheckedBorderColor = idleThumb
-                    )
+                    onCheckedChange = onAvailableChange
                 )
             }
             ChoiceField(
                 label = "Формат сотрудничества",
                 value = state.cooperationType,
                 options = optionsWithCurrent(ProfileChoices.cooperationTypes, state.cooperationType),
-                onSelect = onCooperationChange,
-                locked = locked
+                onSelect = onCooperationChange
             )
             if (state.cooperationType == ProfileChoices.PAID) {
                 ProfileTextField(
                     value = state.price,
                     onValueChange = onPriceChange,
                     label = "Цена за платное чтение",
-                    keyboardType = KeyboardType.Decimal,
-                    readOnly = locked
+                    keyboardType = KeyboardType.Decimal
                 )
             }
             MultiChoice(
@@ -280,20 +239,30 @@ private fun ProfileForm(
                 emptyText = "Справочник жанров пока пуст",
                 items = state.genres.map { it.id to it.name },
                 selected = state.selectedGenreIds,
-                onToggle = onToggleGenre,
-                locked = locked
+                onToggle = onToggleGenre
             )
             MultiChoice(
                 title = "Компетенции",
                 emptyText = "Справочник видов обратной связи пока пуст",
                 items = state.feedbackTypes.map { it.id to it.name },
                 selected = state.selectedFeedbackTypeIds,
-                onToggle = onToggleFeedback,
-                locked = locked
+                onToggle = onToggleFeedback
             )
         }
 
-        val missing = if (locked) null else state.inputProblem()
+        val existsText = if (state.alreadyExists) {
+            if (kind == ProfileKind.READER) "Профиль бета-ридера уже создан" else "Профиль писателя уже создан"
+        } else {
+            null
+        }
+        val missing = if (existsText == null) state.inputProblem() else null
+        if (existsText != null) {
+            Text(
+                text = existsText,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
         if (state.error != null) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -307,12 +276,6 @@ private fun ProfileForm(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
                 )
             }
-        } else if (state.notice != null) {
-            Text(
-                text = state.notice,
-                color = MaterialTheme.extendedColors.success.color,
-                style = MaterialTheme.typography.bodyMedium
-            )
         } else if (missing != null) {
             Text(
                 text = missing,
@@ -321,40 +284,18 @@ private fun ProfileForm(
             )
         }
 
-        if (state.alreadyExists && !state.editing) {
-            OutlinedButton(
-                onClick = onEdit,
-                enabled = !state.isSaving,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(BetafySizes.buttonHeight),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Text("Редактировать", style = MaterialTheme.typography.titleMedium)
-            }
-        }
-        if (!state.alreadyExists || state.editing || state.isSaving) {
-            Button(
-                onClick = onSave,
-                enabled = state.loaded && !state.isSaving && missing == null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(BetafySizes.buttonHeight),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                if (state.isSaving) {
-                    CircularProgressIndicator()
-                } else {
-                    Text("Сохранить", style = MaterialTheme.typography.titleMedium)
-                }
-            }
-        }
-        Spacer(Modifier.height(BetafySpacing.xl))
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Button(
+            onClick = onSave,
+            enabled = state.loaded && !state.isSaving && !state.alreadyExists && missing == null,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(BetafySizes.buttonHeight)
         ) {
-            footer()
+            if (state.isSaving) {
+                CircularProgressIndicator()
+            } else {
+                Text("Сохранить", style = MaterialTheme.typography.titleMedium)
+            }
         }
         Spacer(Modifier.height(BetafySpacing.lg))
     }
@@ -367,22 +308,26 @@ private fun ProfileTextField(
     label: String,
     modifier: Modifier = Modifier,
     singleLine: Boolean = true,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    readOnly: Boolean = false
+    keyboardType: KeyboardType = KeyboardType.Text
 ) {
+    val colors = MaterialTheme.colorScheme
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier.fillMaxWidth(),
-        enabled = true,
-        readOnly = readOnly,
-        textStyle = MaterialTheme.typography.bodyLarge,
-        label = { Text(label, style = MaterialTheme.typography.bodyMedium) },
+        label = { Text(label) },
         singleLine = singleLine,
         minLines = if (singleLine) 1 else 4,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         shape = MaterialTheme.shapes.medium,
-        colors = profileFieldColors()
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = colors.surfaceContainerLow,
+            unfocusedContainerColor = colors.surfaceContainerLow,
+            focusedBorderColor = colors.primary,
+            unfocusedBorderColor = colors.outlineVariant,
+            focusedLabelColor = colors.primary,
+            cursorColor = colors.primary
+        )
     )
 }
 
@@ -392,26 +337,32 @@ private fun ChoiceField(
     label: String,
     value: String,
     options: List<String>,
-    onSelect: (String) -> Unit,
-    locked: Boolean = false
+    onSelect: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val colors = MaterialTheme.colorScheme
     ExposedDropdownMenuBox(
-        expanded = expanded && !locked,
-        onExpandedChange = { if (!locked) expanded = it }
+        expanded = expanded,
+        onExpandedChange = { expanded = it }
     ) {
         OutlinedTextField(
             value = value,
             onValueChange = {},
             readOnly = true,
-            textStyle = MaterialTheme.typography.bodyLarge,
-            label = { Text(label, style = MaterialTheme.typography.bodyMedium) },
+            label = { Text(label) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                 .fillMaxWidth(),
             shape = MaterialTheme.shapes.medium,
-            colors = profileFieldColors()
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = colors.surfaceContainerLow,
+                unfocusedContainerColor = colors.surfaceContainerLow,
+                focusedBorderColor = colors.primary,
+                unfocusedBorderColor = colors.outlineVariant,
+                focusedLabelColor = colors.primary,
+                cursorColor = colors.primary
+            )
         )
         ExposedDropdownMenu(
             expanded = expanded,
@@ -419,7 +370,7 @@ private fun ChoiceField(
         ) {
             options.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(option, style = MaterialTheme.typography.bodyLarge) },
+                    text = { Text(option) },
                     onClick = {
                         onSelect(option)
                         expanded = false
@@ -437,8 +388,7 @@ private fun MultiChoice(
     emptyText: String,
     items: List<Pair<String, String>>,
     selected: Set<String>,
-    onToggle: (String) -> Unit,
-    locked: Boolean = false
+    onToggle: (String) -> Unit
 ) {
     Text(text = title, style = MaterialTheme.typography.titleSmall)
     if (items.isEmpty()) {
@@ -455,40 +405,12 @@ private fun MultiChoice(
             items.forEach { (id, name) ->
                 FilterChip(
                     selected = id in selected,
-                    onClick = { if (!locked) onToggle(id) },
-                    enabled = !locked,
+                    onClick = { onToggle(id) },
                     label = { Text(name) }
                 )
             }
         }
     }
-}
-
-@Composable
-private fun profileFieldColors(): TextFieldColors {
-    val colors = MaterialTheme.colorScheme
-    val border = colors.outline
-    val fill = colors.surfaceContainerLow
-    val text = colors.onSurface
-    val label = colors.onSurfaceVariant
-    return OutlinedTextFieldDefaults.colors(
-        focusedTextColor = text,
-        unfocusedTextColor = text,
-        disabledTextColor = text,
-        focusedContainerColor = fill,
-        unfocusedContainerColor = fill,
-        disabledContainerColor = fill,
-        focusedBorderColor = border,
-        unfocusedBorderColor = border,
-        disabledBorderColor = border,
-        focusedLabelColor = label,
-        unfocusedLabelColor = label,
-        disabledLabelColor = label,
-        focusedTrailingIconColor = label,
-        unfocusedTrailingIconColor = label,
-        disabledTrailingIconColor = label,
-        cursorColor = colors.primary
-    )
 }
 
 private fun optionsWithCurrent(options: List<String>, current: String): List<String> {

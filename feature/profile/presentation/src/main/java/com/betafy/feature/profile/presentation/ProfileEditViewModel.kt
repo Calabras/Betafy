@@ -59,16 +59,7 @@ class ProfileEditViewModel @Inject constructor(
                                 loaded = true,
                                 alreadyExists = profile != null,
                                 genres = genres,
-                                feedbackTypes = feedbackTypes,
-                                bio = profile?.bio.orEmpty(),
-                                experienceLevel = profile?.experienceLevel.orEmpty(),
-                                preferredLanguage = profile?.preferredLanguage.orEmpty(),
-                                maxWordCount = profile?.maxWordCount?.takeIf { it > 0 }?.toString().orEmpty(),
-                                isAvailable = profile?.isAvailable == true,
-                                cooperationType = profile?.cooperationType.orEmpty(),
-                                price = profile?.price?.let(::formatPrice).orEmpty(),
-                                selectedGenreIds = profile?.genreIds.orEmpty().toSet(),
-                                selectedFeedbackTypeIds = profile?.feedbackTypeIds.orEmpty().toSet()
+                                feedbackTypes = feedbackTypes
                             )
                         }
                         trace.event("экран READER загружен, запись=${if (profile == null) "нет" else "есть"}")
@@ -81,10 +72,7 @@ class ProfileEditViewModel @Inject constructor(
                             current.copy(
                                 isLoading = false,
                                 loaded = true,
-                                alreadyExists = profile != null,
-                                bio = profile?.bio.orEmpty(),
-                                experienceLevel = profile?.experienceLevel.orEmpty(),
-                                preferredLanguage = profile?.preferredLanguage.orEmpty()
+                                alreadyExists = profile != null
                             )
                         }
                         trace.event("экран WRITER загружен, запись=${if (profile == null) "нет" else "есть"}")
@@ -143,19 +131,9 @@ class ProfileEditViewModel @Inject constructor(
         state.copy(selectedFeedbackTypeIds = next, error = null)
     }
 
-    fun startEditing() {
-        _state.update { it.copy(editing = true, error = null, notice = null) }
-    }
-
-    fun consumeSaved() {
-        _state.update { it.copy(saved = false) }
-    }
-
     fun save() {
         val current = _state.value
-        val creating = !current.alreadyExists
-        if (!current.loaded || current.isSaving) return
-        if (!creating && !current.editing) return
+        if (!current.loaded || current.isSaving || current.alreadyExists) return
         val problem = current.inputProblem()
         if (problem != null) {
             trace.event("сохранение ${current.kind.name} отклонено: $problem")
@@ -163,7 +141,7 @@ class ProfileEditViewModel @Inject constructor(
             return
         }
         trace.event("сохранение ${current.kind.name} user=${current.userId}: старт")
-        _state.update { it.copy(isSaving = true, error = null, notice = null) }
+        _state.update { it.copy(isSaving = true, error = null) }
         viewModelScope.launch {
             val result = if (current.kind == ProfileKind.READER) {
                 saveReaderProfile(
@@ -180,10 +158,16 @@ class ProfileEditViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             isSaving = false,
-                            saved = creating,
-                            alreadyExists = true,
-                            editing = false,
-                            notice = if (creating) null else "Изменения сохранены",
+                            saved = true,
+                            bio = "",
+                            experienceLevel = "",
+                            preferredLanguage = "",
+                            maxWordCount = "",
+                            isAvailable = false,
+                            cooperationType = "",
+                            price = "",
+                            selectedGenreIds = emptySet(),
+                            selectedFeedbackTypeIds = emptySet(),
                             error = null
                         )
                     }
@@ -191,11 +175,10 @@ class ProfileEditViewModel @Inject constructor(
                 .onFailure { error ->
                     trace.event("сохранение ${current.kind.name} user=${current.userId}: ${error.message}")
                     val detail = error.message?.takeIf { it.isNotBlank() }
-                    val action = if (creating) "создан" else "обновлен"
                     val text = if (detail == null) {
-                        "Профиль не был $action, произошла ошибка"
+                        "Профиль не был создан, произошла ошибка"
                     } else {
-                        "Профиль не был $action, произошла ошибка\n$detail"
+                        "Профиль не был создан, произошла ошибка\n$detail"
                     }
                     _state.update { it.copy(isSaving = false, error = text) }
                 }
@@ -205,11 +188,6 @@ class ProfileEditViewModel @Inject constructor(
     fun retry(kind: ProfileKind, userId: String?) {
         opened = false
         open(kind, userId)
-    }
-
-    private fun formatPrice(price: Double): String {
-        if (price <= 0.0) return ""
-        return if (price % 1.0 == 0.0) price.toLong().toString() else price.toString()
     }
 
     private fun sanitizePrice(value: String): String {

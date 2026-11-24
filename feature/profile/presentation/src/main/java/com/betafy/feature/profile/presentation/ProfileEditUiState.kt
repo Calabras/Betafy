@@ -23,10 +23,8 @@ data class ProfileEditUiState(
     val isLoading: Boolean = false,
     val loaded: Boolean = false,
     val alreadyExists: Boolean = false,
-    val editing: Boolean = false,
     val isSaving: Boolean = false,
     val error: String? = null,
-    val notice: String? = null,
     val saved: Boolean = false
 ) {
     fun inputProblem(): String? = if (kind == ProfileKind.READER) {
