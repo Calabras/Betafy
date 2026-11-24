@@ -57,7 +57,9 @@ fun ProfileEditScreen(
     userId: String?,
     onBack: () -> Unit,
     onSaved: (String) -> Unit,
-    viewModel: ProfileEditViewModel = hiltViewModel()
+    embedded: Boolean = false,
+    viewModelKey: String? = null,
+    viewModel: ProfileEditViewModel = hiltViewModel(key = viewModelKey)
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -84,19 +86,21 @@ fun ProfileEditScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .safeDrawingPadding()
+            .then(if (embedded) Modifier else Modifier.safeDrawingPadding())
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Назад"
-                )
+        if (!embedded) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Назад"
+                    )
+                }
+                Text(text = title, style = MaterialTheme.typography.titleLarge)
             }
-            Text(text = title, style = MaterialTheme.typography.titleLarge)
         }
 
         when {
@@ -260,19 +264,7 @@ private fun ProfileForm(
             )
         }
 
-        val existsText = if (state.alreadyExists) {
-            if (kind == ProfileKind.READER) "Профиль бета-ридера уже создан" else "Профиль писателя уже создан"
-        } else {
-            null
-        }
-        val missing = if (existsText == null) state.inputProblem() else null
-        if (existsText != null) {
-            Text(
-                text = existsText,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
+        val missing = if (state.alreadyExists) null else state.inputProblem()
         if (state.error != null) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),

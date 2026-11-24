@@ -143,9 +143,6 @@ fun AppNavigation() {
             }
 
             NavigationScreen(
-                profilesChecked = cabinetState.checked,
-                readerExists = cabinetState.readerExists,
-                writerExists = cabinetState.writerExists,
                 onLogout = {
                     session.signOut()
 
@@ -157,11 +154,18 @@ fun AppNavigation() {
                         launchSingleTop = true
                     }
                 },
-                onCreateReader = {
-                    navController.navigate(ProfileRoutes.READER)
-                },
-                onCreateWriter = {
-                    navController.navigate(ProfileRoutes.WRITER)
+                profilePage = { reader ->
+                    ProfileEditScreen(
+                        kind = if (reader) ProfileKind.READER else ProfileKind.WRITER,
+                        userId = session.currentUserId(),
+                        onBack = {},
+                        embedded = true,
+                        viewModelKey = if (reader) "reader-profile" else "writer-profile",
+                        onSaved = { message ->
+                            inbox.record(session.currentUserId().orEmpty(), NotificationKinds.PROFILE, message)
+                            cabinet.refresh(session.currentUserId())
+                        }
+                    )
                 },
                 bell = { item ->
                     NotificationBell(

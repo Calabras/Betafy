@@ -1,7 +1,11 @@
 package com.betafy.presentation.navigation.screen
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,12 +34,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.betafy.betafyapp.core.uikit.theme.BetafySizes
-import com.betafy.betafyapp.core.uikit.theme.extendedColors
 import kotlinx.coroutines.launch
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -47,11 +52,7 @@ import com.betafy.presentation.navigation.model.NavigationBottomModel
 @Composable
 fun NavigationScreen(
     onLogout: () -> Unit,
-    onCreateReader: () -> Unit = {},
-    onCreateWriter: () -> Unit = {},
-    profilesChecked: Boolean = true,
-    readerExists: Boolean = false,
-    writerExists: Boolean = false,
+    profilePage: @Composable (Boolean) -> Unit = {},
     bell: (@Composable (NavigationBottomModel) -> Unit)? = null,
     navController: NavHostController = rememberNavController()
 ) {
@@ -85,11 +86,7 @@ fun NavigationScreen(
                 composable(NavigationBottomModel.Profile.route) {
                     ProfilePlaceholder(
                         onLogout = onLogout,
-                        onCreateReader = onCreateReader,
-                        onCreateWriter = onCreateWriter,
-                        profilesChecked = profilesChecked,
-                        readerExists = readerExists,
-                        writerExists = writerExists
+                        profilePage = profilePage
                     )
                 }
             }
@@ -110,25 +107,18 @@ private fun PlaceholderScreen(title: String) {
 @Composable
 private fun ProfilePlaceholder(
     onLogout: () -> Unit,
-    onCreateReader: () -> Unit = {},
-    onCreateWriter: () -> Unit = {},
-    profilesChecked: Boolean = true,
-    readerExists: Boolean = false,
-    writerExists: Boolean = false
+    profilePage: @Composable (Boolean) -> Unit
 ) {
     var confirmLogout by remember { mutableStateOf(false) }
     val pagerState = rememberPagerState(pageCount = { 2 })
     val scope = rememberCoroutineScope()
-    val success = MaterialTheme.extendedColors.success
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(horizontal = 20.dp)
+            .padding(top = 8.dp, bottom = 12.dp)
     ) {
-        Text(text = "Профиль", style = MaterialTheme.typography.titleLarge)
-        Spacer(Modifier.height(20.dp))
         RoleSwitch(
             selected = pagerState.currentPage,
             onSelect = { index -> scope.launch { pagerState.animateScrollToPage(index) } }
@@ -139,44 +129,11 @@ private fun ProfilePlaceholder(
                 .weight(1f)
                 .fillMaxWidth()
         ) { page ->
-            val exists = if (page == 0) readerExists else writerExists
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Button(
-                    onClick = { if (page == 0) onCreateReader() else onCreateWriter() },
-                    enabled = profilesChecked,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(BetafySizes.buttonHeight),
-                    shape = MaterialTheme.shapes.medium,
-                    elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = 0.dp,
-                        pressedElevation = 0.dp,
-                        focusedElevation = 0.dp,
-                        hoveredElevation = 0.dp,
-                        disabledElevation = 0.dp
-                    ),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = success.color,
-                        contentColor = success.onColor
-                    )
-                ) {
-                    Text(
-                        text = if (exists) "Посмотреть профиль" else "Создать профиль",
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                }
+            Box(modifier = Modifier.fillMaxSize()) {
+                profilePage(page == 0)
             }
         }
-        TextButton(
-            onClick = { confirmLogout = true },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "Выйти", color = MaterialTheme.colorScheme.error)
-        }
+        LogoutButton(onClick = { confirmLogout = true })
     }
 
     if (confirmLogout) {
@@ -226,6 +183,46 @@ private fun RoleSwitch(
                     style = MaterialTheme.typography.labelLarge
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun LogoutButton(onClick: () -> Unit) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val scale by animateFloatAsState(targetValue = if (pressed) 0.96f else 1f, label = "logout-scale")
+    val glow by animateDpAsState(targetValue = if (pressed) 16.dp else 8.dp, label = "logout-glow")
+    val error = MaterialTheme.colorScheme.error
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+    ) {
+        Button(
+            onClick = onClick,
+            interactionSource = interaction,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(BetafySizes.buttonHeight)
+                .shadow(glow, MaterialTheme.shapes.medium, ambientColor = error, spotColor = error),
+            shape = MaterialTheme.shapes.medium,
+            elevation = ButtonDefaults.buttonElevation(
+                defaultElevation = 0.dp,
+                pressedElevation = 0.dp,
+                focusedElevation = 0.dp,
+                hoveredElevation = 0.dp,
+                disabledElevation = 0.dp
+            ),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = error,
+                contentColor = MaterialTheme.colorScheme.onError
+            )
+        ) {
+            Text(text = "Выйти", style = MaterialTheme.typography.labelLarge)
         }
     }
 }

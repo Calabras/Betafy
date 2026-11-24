@@ -171,15 +171,7 @@ class ProfileEditViewModel @Inject constructor(
                         it.copy(
                             isSaving = false,
                             saved = true,
-                            bio = "",
-                            experienceLevel = "",
-                            preferredLanguage = "",
-                            maxWordCount = "",
-                            isAvailable = false,
-                            cooperationType = "",
-                            price = "",
-                            selectedGenreIds = emptySet(),
-                            selectedFeedbackTypeIds = emptySet(),
+                            alreadyExists = true,
                             error = null
                         )
                     }
