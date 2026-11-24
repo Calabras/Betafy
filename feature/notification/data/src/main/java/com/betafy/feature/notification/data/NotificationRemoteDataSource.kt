@@ -41,6 +41,19 @@ class NotificationRemoteDataSource(
         }
     }
 
+    suspend fun list(userId: String): List<InboxNotification> {
+        if (userId.isBlank()) return emptyList()
+        val snapshot = withTimeout(TIMEOUT_MS) {
+            database.reference.child(NODE).orderByChild(USER_ID).equalTo(userId).get().await()
+        }
+        val rows = snapshot.children.mapNotNull { child ->
+            val id = child.key ?: return@mapNotNull null
+            val value = child.value as? Map<*, *> ?: return@mapNotNull null
+            id to value
+        }
+        return NotificationRecords.parse(userId, rows)
+    }
+
     suspend fun save(userId: String, type: String, text: String, relatedEntityId: String?) {
         val ref = database.reference.child(NODE).push()
         val id = ref.key ?: error("Не удалось создать уведомление")

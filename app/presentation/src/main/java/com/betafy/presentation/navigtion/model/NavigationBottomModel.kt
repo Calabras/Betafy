@@ -22,7 +22,7 @@ sealed class NavigationBottomModel(
         accent = AccentRole.Lavender,
         caption = "Добрый день",
         headerLines = listOf(
-            listOf(HeaderPart("Привет, "), HeaderPart("Анна", AccentRole.Lavender))
+            listOf(HeaderPart("Привет"))
         ),
         iconPaths = listOf(
             "M3.5 10.5 a7 7 0 1 0 14 0 a7 7 0 1 0 -14 0",

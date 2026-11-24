@@ -14,6 +14,7 @@ import com.betafy.feature.auth.presentation.LoginScreen
 import com.betafy.feature.auth.presentation.RegisterScreen
 import com.betafy.feature.auth.presentation.SessionViewModel
 import com.betafy.feature.match.presentation.MatchScreen
+import com.betafy.feature.match.presentation.MatchViewModel
 import com.betafy.feature.notification.presentation.NotificationBell
 import com.betafy.feature.notification.presentation.NotificationInboxViewModel
 import com.betafy.feature.notification.presentation.NotificationKinds
@@ -133,17 +134,24 @@ fun AppNavigation() {
 
         composable(HOME) {
             val cabinet: ProfileCabinetViewModel = hiltViewModel()
+            val matching: MatchViewModel = hiltViewModel()
             val cabinetState by cabinet.state.collectAsStateWithLifecycle()
+            val userName by session.username.collectAsStateWithLifecycle()
             val lifecycleOwner = LocalLifecycleOwner.current
             LaunchedEffect(lifecycleOwner) {
                 lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
                     val userId = session.currentUserId()
                     inbox.open(userId.orEmpty())
                     cabinet.refresh(userId)
+                    session.refreshUsername()
+                    matching.deliverIncoming(userId.orEmpty()) { matchId, text ->
+                        inbox.ensure(userId.orEmpty(), NotificationKinds.INTEREST, text, matchId)
+                    }
                 }
             }
 
             NavigationScreen(
+                userName = userName,
                 readerCreateEnabled = cabinetState.checked && !cabinetState.readerExists,
                 writerCreateEnabled = cabinetState.checked && !cabinetState.writerExists,
                 onLogout = {

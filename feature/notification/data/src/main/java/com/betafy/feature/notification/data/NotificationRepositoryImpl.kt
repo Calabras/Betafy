@@ -17,6 +17,10 @@ class NotificationRepositoryImpl(
             throw IllegalStateException(readable(error))
         }
 
+    override suspend fun list(userId: String): Result<List<InboxNotification>> = resultOf {
+        dataSource.list(userId)
+    }
+
     override suspend fun save(
         userId: String,
         type: String,

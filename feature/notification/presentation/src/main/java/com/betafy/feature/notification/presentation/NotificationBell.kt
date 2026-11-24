@@ -572,6 +572,7 @@ private fun notificationStamp(id: String): String? {
 
 private fun titleOf(type: String): String = when (type) {
     NotificationKinds.PROFILE -> "Профиль"
+    NotificationKinds.INTEREST -> "Интерес"
     "match" -> "Мэтч"
     else -> "Уведомление"
 }

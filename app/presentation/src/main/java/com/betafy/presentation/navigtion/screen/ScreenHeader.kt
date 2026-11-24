@@ -30,11 +30,13 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.betafy.betafyapp.core.uikit.theme.BetafyHeaderText
 import com.betafy.presentation.navigation.model.AccentRole
+import com.betafy.presentation.navigation.model.HeaderPart
 import com.betafy.presentation.navigation.model.NavigationBottomModel
 
 @Composable
 fun ScreenHeader(
     item: NavigationBottomModel,
+    userName: String = "",
     modifier: Modifier = Modifier,
     bell: (@Composable () -> Unit)? = null
 ) {
@@ -66,7 +68,20 @@ fun ScreenHeader(
                     color = captionColor
                 )
 
-                target.headerLines.forEach { line ->
+                val lines = if (
+                    target.route == NavigationBottomModel.Search.route &&
+                    userName.isNotBlank()
+                ) {
+                    listOf(
+                        listOf(
+                            HeaderPart("Привет, "),
+                            HeaderPart(userName, AccentRole.Lavender)
+                        )
+                    )
+                } else {
+                    target.headerLines
+                }
+                lines.forEach { line ->
                     Text(
                         text = buildAnnotatedString {
                             line.forEach { part ->

@@ -29,8 +29,8 @@ class MatchSnapshotParserTest {
                     "feedback_type_ids" to listOf("plot", "characters")
                 )
             ),
-            readerGenres = mapOf("ira" to mapOf("fantasy" to true, "detective" to true)),
-            readerFeedback = mapOf("ira" to mapOf("plot" to true, "characters" to true)),
+            readerGenres = mapOf("ira" to mapOf("reader_id" to "ira", "fantasy" to true, "detective" to true)),
+            readerFeedback = mapOf("ira" to mapOf("reader_id" to "ira", "plot" to true, "characters" to true)),
             works = mapOf(
                 "north" to mapOf(
                     "writer_id" to "anna",
@@ -39,7 +39,7 @@ class MatchSnapshotParserTest {
                     "language" to "Русский"
                 )
             ),
-            workGenres = mapOf("north" to mapOf("fantasy" to true, "detective" to true)),
+            workGenres = mapOf("north" to mapOf("writer_id" to "anna", "fantasy" to true, "detective" to true)),
             requests = mapOf(
                 "req_north" to mapOf(
                     "work_id" to "north",
@@ -48,7 +48,7 @@ class MatchSnapshotParserTest {
                     "deadline" to "2026-12-20"
                 )
             ),
-            requestFeedback = mapOf("req_north" to mapOf("plot" to true, "characters" to true)),
+            requestFeedback = mapOf("req_north" to mapOf("writer_id" to "anna", "plot" to true, "characters" to true)),
             matches = emptyMap(),
             users = mapOf(
                 "anna" to mapOf("username" to "Анна"),
@@ -61,5 +61,8 @@ class MatchSnapshotParserTest {
         val board = MatchBoardBuilder.build(catalog, "anna", "2026-11-22")
         assertEquals(listOf("Ира" to 100), board.writerLines.map { it.counterpart to it.score })
         assertEquals("Фэнтези, Детектив · бесплатно · 40000 слов · Сюжет, Персонажи", board.writerLines.first().caption)
+        val labels = board.writerLines.first().traits.map { it.label }
+        assertEquals(listOf("Жанр: Фэнтези", "Жанр: Детектив"), labels.filter { it.startsWith("Жанр") })
+        assertEquals(listOf("Интерес: Сюжет", "Интерес: Персонажи"), labels.filter { it.startsWith("Интерес") })
     }
 }

@@ -3,6 +3,7 @@ package com.betafy.feature.notification.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.betafy.feature.notification.domain.DeleteNotificationsUseCase
+import com.betafy.feature.notification.domain.EnsureNotificationUseCase
 import com.betafy.feature.notification.domain.MarkNotificationsReadUseCase
 import com.betafy.feature.notification.domain.ObserveNotificationsUseCase
 import com.betafy.feature.notification.domain.SaveNotificationUseCase
@@ -19,6 +20,7 @@ import kotlinx.coroutines.launch
 
 object NotificationKinds {
     const val PROFILE = "profile"
+    const val INTEREST = "interest"
 }
 
 data class NotificationUiState(
@@ -32,6 +34,7 @@ data class NotificationUiState(
 @HiltViewModel
 class NotificationInboxViewModel @Inject constructor(
     private val observeNotifications: ObserveNotificationsUseCase,
+    private val ensureNotification: EnsureNotificationUseCase,
     private val saveNotification: SaveNotificationUseCase,
     private val markNotificationsRead: MarkNotificationsReadUseCase,
     private val deleteNotifications: DeleteNotificationsUseCase
@@ -42,6 +45,7 @@ class NotificationInboxViewModel @Inject constructor(
 
     private var openedFor: String? = null
     private var listen: Job? = null
+    private val ensuring = mutableSetOf<String>()
 
     fun open(userId: String) {
         if (userId.isBlank()) {
@@ -63,6 +67,17 @@ class NotificationInboxViewModel @Inject constructor(
                 .collect { items ->
                     _state.update { it.copy(loading = false, items = items, error = null) }
                 }
+        }
+    }
+
+    fun ensure(userId: String, type: String, text: String, relatedEntityId: String) {
+        if (userId.isBlank() || text.isBlank() || relatedEntityId.isBlank()) return
+        if (!ensuring.add(relatedEntityId)) return
+        viewModelScope.launch {
+            ensureNotification(userId, type, text, relatedEntityId).onFailure { error ->
+                ensuring.remove(relatedEntityId)
+                _state.update { it.copy(error = error.message) }
+            }
         }
     }
 

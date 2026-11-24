@@ -33,7 +33,13 @@ data class StoredMatch(
     val id: String,
     val requestId: String,
     val readerId: String,
-    val status: String
+    val status: String,
+    val initiatorId: String = ""
+)
+
+data class IncomingInterest(
+    val matchId: String,
+    val text: String
 )
 
 data class PersonName(

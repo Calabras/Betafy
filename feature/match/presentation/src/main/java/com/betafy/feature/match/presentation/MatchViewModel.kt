@@ -2,6 +2,7 @@ package com.betafy.feature.match.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.betafy.feature.match.domain.LoadIncomingInterestsUseCase
 import com.betafy.feature.match.domain.LoadMatchBoardUseCase
 import com.betafy.feature.match.domain.ProposeMatchUseCase
 import com.betafy.feature.match.domain.model.MatchLine
@@ -27,7 +28,8 @@ data class MatchUiState(
 @HiltViewModel
 class MatchViewModel @Inject constructor(
     private val loadBoard: LoadMatchBoardUseCase,
-    private val propose: ProposeMatchUseCase
+    private val propose: ProposeMatchUseCase,
+    private val incoming: LoadIncomingInterestsUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(MatchUiState())
     val state: StateFlow<MatchUiState> = _state.asStateFlow()
@@ -71,6 +73,15 @@ class MatchViewModel @Inject constructor(
                     }
                 }
             )
+        }
+    }
+
+    fun deliverIncoming(userId: String, deliver: (matchId: String, text: String) -> Unit) {
+        if (userId.isBlank()) return
+        viewModelScope.launch {
+            incoming(userId).onSuccess { items ->
+                items.forEach { deliver(it.matchId, it.text) }
+            }
         }
     }
 

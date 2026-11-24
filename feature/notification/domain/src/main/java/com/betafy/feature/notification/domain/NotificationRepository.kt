@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface NotificationRepository {
     fun observe(userId: String): Flow<List<InboxNotification>>
+    suspend fun list(userId: String): Result<List<InboxNotification>>
     suspend fun save(
         userId: String,
         type: String,

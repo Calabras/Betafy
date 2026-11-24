@@ -3,6 +3,7 @@ package com.betafy.feature.notification.di
 import com.betafy.feature.notification.data.NotificationRemoteDataSource
 import com.betafy.feature.notification.data.NotificationRepositoryImpl
 import com.betafy.feature.notification.domain.DeleteNotificationsUseCase
+import com.betafy.feature.notification.domain.EnsureNotificationUseCase
 import com.betafy.feature.notification.domain.MarkNotificationsReadUseCase
 import com.betafy.feature.notification.domain.NotificationRepository
 import com.betafy.feature.notification.domain.ObserveNotificationsUseCase
@@ -34,6 +35,11 @@ object NotificationModule {
     fun provideObserveNotificationsUseCase(
         repository: NotificationRepository
     ): ObserveNotificationsUseCase = ObserveNotificationsUseCase(repository)
+
+    @Provides
+    fun provideEnsureNotificationUseCase(
+        repository: NotificationRepository
+    ): EnsureNotificationUseCase = EnsureNotificationUseCase(repository)
 
     @Provides
     fun provideSaveNotificationUseCase(

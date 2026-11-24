@@ -48,6 +48,7 @@ fun NavigationScreen(
     onCreateWriter: () -> Unit = {},
     readerCreateEnabled: Boolean = true,
     writerCreateEnabled: Boolean = true,
+    userName: String = "",
     bell: (@Composable (NavigationBottomModel) -> Unit)? = null,
     matchContent: @Composable () -> Unit = { PlaceholderScreen("Мэтч") },
     navController: NavHostController = rememberNavController()
@@ -68,6 +69,7 @@ fun NavigationScreen(
         ) {
             ScreenHeader(
                 item = currentItem,
+                userName = userName,
                 bell = bell?.let { slot -> { slot(currentItem) } }
             )
 

@@ -2,6 +2,7 @@ package com.betafy.feature.match.di
 
 import com.betafy.feature.match.data.MatchRemoteDataSource
 import com.betafy.feature.match.data.MatchRepositoryImpl
+import com.betafy.feature.match.domain.LoadIncomingInterestsUseCase
 import com.betafy.feature.match.domain.LoadMatchBoardUseCase
 import com.betafy.feature.match.domain.MatchRepository
 import com.betafy.feature.match.domain.ProposeMatchUseCase
@@ -27,6 +28,11 @@ object MatchModule {
     fun provideMatchRepository(
         dataSource: MatchRemoteDataSource
     ): MatchRepository = MatchRepositoryImpl(dataSource)
+
+    @Provides
+    fun provideLoadIncomingInterestsUseCase(
+        repository: MatchRepository
+    ): LoadIncomingInterestsUseCase = LoadIncomingInterestsUseCase(repository)
 
     @Provides
     fun provideLoadMatchBoardUseCase(

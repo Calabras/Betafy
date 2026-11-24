@@ -212,20 +212,6 @@ private fun ReaderCardBody(line: MatchLine) {
             fontWeight = FontWeight.Bold
         )
         Text(text = name, style = MaterialTheme.typography.headlineSmall)
-        if (line.username.isNotBlank()) {
-            Text(
-                text = "@${line.username}",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        Text(text = line.title, style = MaterialTheme.typography.titleMedium)
-        if (line.wordCount > 0) {
-            Text(
-                text = "${formatCount(line.wordCount)} слов",
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
         if (line.traits.isNotEmpty()) {
             Spacer(Modifier.height(4.dp))
             FlowRow(
@@ -312,5 +298,3 @@ private fun Placeholder(
         }
     }
 }
-
-private fun formatCount(value: Int): String = "%,d".format(value).replace(',', ' ')

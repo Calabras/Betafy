@@ -5,6 +5,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ServerValue
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
@@ -61,6 +62,19 @@ class FirebaseAuthRepository(
 
         auth.signOut()
         uid
+    }
+
+    override suspend fun currentUsername(): String? {
+        val uid = auth.currentUser?.uid ?: return null
+        return try {
+            withTimeout(15_000) {
+                database.reference.child("Users").child(uid).child("username").get().await().value as? String
+            }?.takeIf { it.isNotBlank() }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            null
+        }
     }
 
     override suspend fun signIn(email: String, password: String): Result<String> = runCatching {

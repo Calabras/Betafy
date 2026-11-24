@@ -72,7 +72,8 @@ object MatchSnapshotParser {
                 id = id,
                 requestId = raw["request_id"]?.toString().orEmpty(),
                 readerId = raw["reader_id"]?.toString().orEmpty(),
-                status = raw["status"]?.toString().orEmpty()
+                status = raw["status"]?.toString().orEmpty(),
+                initiatorId = raw["initiator_id"]?.toString().orEmpty()
             )
         }
         return MatchCatalog(
@@ -95,7 +96,7 @@ object MatchSnapshotParser {
         val raw = node[parentId] ?: return emptyList()
         return when (raw) {
             is Map<*, *> -> raw.entries.mapNotNull { (key, value) ->
-                if (value == false || value == null || key == null) null else key.toString()
+                if (value != true || key == null) null else key.toString()
             }.filter { it.isNotBlank() }
             else -> raw.asStringList()
         }
