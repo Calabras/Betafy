@@ -1,0 +1,9 @@
+com.betafy.feature.profile.di-pngs-0 /home/e/AndroidStudioProjects/BetafyApp/feature/profile/di/build/generated/res/pngs/debug
+com.betafy.feature.profile.di-updated_navigation_xml-1 /home/e/AndroidStudioProjects/BetafyApp/feature/profile/di/build/generated/updated_navigation_xml/debug
+com.betafy.feature.profile.di-mergeDebugResources-2 /home/e/AndroidStudioProjects/BetafyApp/feature/profile/di/build/intermediates/incremental/debug/mergeDebugResources/merged.dir
+com.betafy.feature.profile.di-mergeDebugResources-3 /home/e/AndroidStudioProjects/BetafyApp/feature/profile/di/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir
+com.betafy.feature.profile.di-debug-4 /home/e/AndroidStudioProjects/BetafyApp/feature/profile/di/build/intermediates/merged_res/debug/mergeDebugResources
+com.betafy.feature.profile.di-debug-5 /home/e/AndroidStudioProjects/BetafyApp/feature/profile/di/build/intermediates/packaged_res/debug/packageDebugResources
+com.betafy.feature.profile.di-debug-6 /home/e/AndroidStudioProjects/BetafyApp/feature/profile/di/src/debug/res
+com.betafy.feature.profile.di-main-7 /home/e/AndroidStudioProjects/BetafyApp/feature/profile/di/src/main/res
+gradleHome-0 /home/e/.gradle
