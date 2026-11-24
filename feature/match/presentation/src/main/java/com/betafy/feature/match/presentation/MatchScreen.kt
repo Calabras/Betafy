@@ -2,7 +2,7 @@ package com.betafy.feature.match.presentation
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -248,11 +249,11 @@ private fun SeekSwitch(
     onSelect: (Int) -> Unit
 ) {
     val labels = listOf("Я ищу ридера", "Я ищу писателя")
+    val colors = MaterialTheme.colorScheme
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(50))
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .background(colors.surfaceContainer, MaterialTheme.shapes.medium)
             .padding(4.dp)
     ) {
         labels.forEachIndexed { index, label ->
@@ -260,21 +261,20 @@ private fun SeekSwitch(
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .clip(RoundedCornerShape(50))
-                    .background(if (active) MaterialTheme.colorScheme.onSurface else Color.Transparent)
-                    .clickable { onSelect(index) }
-                    .padding(vertical = 12.dp),
+                    .height(44.dp)
+                    .clip(MaterialTheme.shapes.small)
+                    .background(if (active) colors.primary else Color.Transparent)
+                    .selectable(
+                        selected = active,
+                        role = Role.Tab,
+                        onClick = { onSelect(index) }
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = label,
-                    color = if (active) {
-                        MaterialTheme.colorScheme.surface
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.padding(horizontal = 4.dp)
+                    color = if (active) colors.onPrimary else colors.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelLarge
                 )
             }
         }
