@@ -154,13 +154,14 @@ fun AppNavigation() {
                         launchSingleTop = true
                     }
                 },
-                profilePage = { reader ->
+                profilePage = { reader, footer ->
                     ProfileEditScreen(
                         kind = if (reader) ProfileKind.READER else ProfileKind.WRITER,
                         userId = session.currentUserId(),
                         onBack = {},
                         embedded = true,
                         viewModelKey = if (reader) "reader-profile" else "writer-profile",
+                        footer = footer,
                         onSaved = { message ->
                             inbox.record(session.currentUserId().orEmpty(), NotificationKinds.PROFILE, message)
                             cabinet.refresh(session.currentUserId())

@@ -1,11 +1,14 @@
 package com.betafy.presentation.navigation.screen
 
-import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,25 +37,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.betafy.betafyapp.core.uikit.theme.BetafySizes
 import kotlinx.coroutines.launch
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.betafy.betafyapp.core.uikit.theme.BetafySizes
 import com.betafy.presentation.navigation.model.NavigationBottomModel
 
 @Composable
 fun NavigationScreen(
     onLogout: () -> Unit,
-    profilePage: @Composable (Boolean) -> Unit = {},
+    profilePage: @Composable (Boolean, @Composable () -> Unit) -> Unit = { _, _ -> },
     bell: (@Composable (NavigationBottomModel) -> Unit)? = null,
     navController: NavHostController = rememberNavController()
 ) {
@@ -107,7 +109,7 @@ private fun PlaceholderScreen(title: String) {
 @Composable
 private fun ProfilePlaceholder(
     onLogout: () -> Unit,
-    profilePage: @Composable (Boolean) -> Unit
+    profilePage: @Composable (Boolean, @Composable () -> Unit) -> Unit
 ) {
     var confirmLogout by remember { mutableStateOf(false) }
     val pagerState = rememberPagerState(pageCount = { 2 })
@@ -117,7 +119,7 @@ private fun ProfilePlaceholder(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp)
-            .padding(top = 8.dp, bottom = 12.dp)
+            .padding(top = 8.dp)
     ) {
         RoleSwitch(
             selected = pagerState.currentPage,
@@ -130,10 +132,11 @@ private fun ProfilePlaceholder(
                 .fillMaxWidth()
         ) { page ->
             Box(modifier = Modifier.fillMaxSize()) {
-                profilePage(page == 0)
+                profilePage(page == 0) {
+                    LogoutButton(onClick = { confirmLogout = true })
+                }
             }
         }
-        LogoutButton(onClick = { confirmLogout = true })
     }
 
     if (confirmLogout) {
@@ -191,39 +194,47 @@ private fun RoleSwitch(
 private fun LogoutButton(onClick: () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
+    val hovered by interaction.collectIsHoveredAsState()
+    val hot = pressed || hovered
     val scale by animateFloatAsState(targetValue = if (pressed) 0.96f else 1f, label = "logout-scale")
-    val glow by animateDpAsState(targetValue = if (pressed) 16.dp else 8.dp, label = "logout-glow")
     val error = MaterialTheme.colorScheme.error
-    Box(
+    val container by animateColorAsState(
+        targetValue = if (hot) error else Color.Transparent,
+        label = "logout-fill"
+    )
+    val content by animateColorAsState(
+        targetValue = if (hot) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onSurfaceVariant,
+        label = "logout-text"
+    )
+    val border by animateColorAsState(
+        targetValue = if (hot) error else MaterialTheme.colorScheme.outlineVariant,
+        label = "logout-border"
+    )
+    Button(
+        onClick = onClick,
+        interactionSource = interaction,
         modifier = Modifier
-            .fillMaxWidth()
+            .height(36.dp)
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
-            }
+            },
+        shape = MaterialTheme.shapes.medium,
+        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 0.dp),
+        border = BorderStroke(1.dp, border),
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 0.dp,
+            pressedElevation = 0.dp,
+            focusedElevation = 0.dp,
+            hoveredElevation = 0.dp,
+            disabledElevation = 0.dp
+        ),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = container,
+            contentColor = content
+        )
     ) {
-        Button(
-            onClick = onClick,
-            interactionSource = interaction,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(BetafySizes.buttonHeight)
-                .shadow(glow, MaterialTheme.shapes.medium, ambientColor = error, spotColor = error),
-            shape = MaterialTheme.shapes.medium,
-            elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 0.dp,
-                pressedElevation = 0.dp,
-                focusedElevation = 0.dp,
-                hoveredElevation = 0.dp,
-                disabledElevation = 0.dp
-            ),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = error,
-                contentColor = MaterialTheme.colorScheme.onError
-            )
-        ) {
-            Text(text = "Выйти", style = MaterialTheme.typography.labelLarge)
-        }
+        Text(text = "Выйти", style = MaterialTheme.typography.labelMedium)
     }
 }
 

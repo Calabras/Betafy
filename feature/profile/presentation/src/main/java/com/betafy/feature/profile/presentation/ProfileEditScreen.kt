@@ -62,6 +62,7 @@ fun ProfileEditScreen(
     onSaved: (String) -> Unit,
     embedded: Boolean = false,
     viewModelKey: String? = null,
+    footer: @Composable () -> Unit = {},
     viewModel: ProfileEditViewModel = hiltViewModel(key = viewModelKey)
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -135,6 +136,8 @@ fun ProfileEditScreen(
                     TextButton(onClick = { viewModel.retry(kind, userId) }) {
                         Text("Повторить")
                     }
+                    Spacer(Modifier.height(BetafySpacing.lg))
+                    footer()
                 }
             }
 
@@ -155,7 +158,8 @@ fun ProfileEditScreen(
                     onToggleGenre = viewModel::toggleGenre,
                     onToggleFeedback = viewModel::toggleFeedbackType,
                     onEdit = viewModel::startEditing,
-                    onSave = viewModel::save
+                    onSave = viewModel::save,
+                    footer = footer
                 )
             }
         }
@@ -180,7 +184,8 @@ private fun ProfileForm(
     onToggleGenre: (String) -> Unit,
     onToggleFeedback: (String) -> Unit,
     onEdit: () -> Unit,
-    onSave: () -> Unit
+    onSave: () -> Unit,
+    footer: @Composable () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -325,6 +330,13 @@ private fun ProfileForm(
                     Text("Сохранить", style = MaterialTheme.typography.titleMedium)
                 }
             }
+        }
+        Spacer(Modifier.height(BetafySpacing.xl))
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            footer()
         }
         Spacer(Modifier.height(BetafySpacing.lg))
     }
