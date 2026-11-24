@@ -34,6 +34,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldColors
@@ -235,10 +236,27 @@ private fun ProfileForm(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("Готов брать работы", style = MaterialTheme.typography.bodyLarge)
+                val success = MaterialTheme.extendedColors.success
+                val idleTrack = MaterialTheme.colorScheme.surfaceContainerHighest
+                val idleThumb = MaterialTheme.colorScheme.outline
                 Switch(
                     checked = state.isAvailable,
                     onCheckedChange = onAvailableChange,
-                    enabled = !locked
+                    enabled = !locked,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = success.onColor,
+                        checkedTrackColor = success.color,
+                        checkedBorderColor = success.color,
+                        uncheckedThumbColor = idleThumb,
+                        uncheckedTrackColor = idleTrack,
+                        uncheckedBorderColor = idleThumb,
+                        disabledCheckedThumbColor = success.onColor,
+                        disabledCheckedTrackColor = success.color,
+                        disabledCheckedBorderColor = success.color,
+                        disabledUncheckedThumbColor = idleThumb,
+                        disabledUncheckedTrackColor = idleTrack,
+                        disabledUncheckedBorderColor = idleThumb
+                    )
                 )
             }
             ChoiceField(

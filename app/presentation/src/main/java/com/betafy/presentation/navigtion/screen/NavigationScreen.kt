@@ -1,14 +1,15 @@
 package com.betafy.presentation.navigation.screen
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
@@ -196,7 +198,8 @@ private fun LogoutButton(onClick: () -> Unit) {
     val pressed by interaction.collectIsPressedAsState()
     val hovered by interaction.collectIsHoveredAsState()
     val hot = pressed || hovered
-    val scale by animateFloatAsState(targetValue = if (pressed) 0.96f else 1f, label = "logout-scale")
+    val scale by animateFloatAsState(targetValue = if (hot) 0.97f else 1f, label = "logout-scale")
+    val glow by animateDpAsState(targetValue = if (hot) 12.dp else 0.dp, label = "logout-glow")
     val error = MaterialTheme.colorScheme.error
     val container by animateColorAsState(
         targetValue = if (hot) error else Color.Transparent,
@@ -210,31 +213,32 @@ private fun LogoutButton(onClick: () -> Unit) {
         targetValue = if (hot) error else MaterialTheme.colorScheme.outlineVariant,
         label = "logout-border"
     )
-    Button(
-        onClick = onClick,
-        interactionSource = interaction,
+    val shape = MaterialTheme.shapes.medium
+    Box(
         modifier = Modifier
-            .height(36.dp)
+            .height(52.dp)
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
-            },
-        shape = MaterialTheme.shapes.medium,
-        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 0.dp),
-        border = BorderStroke(1.dp, border),
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 0.dp,
-            pressedElevation = 0.dp,
-            focusedElevation = 0.dp,
-            hoveredElevation = 0.dp,
-            disabledElevation = 0.dp
-        ),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = container,
-            contentColor = content
-        )
+            }
+            .shadow(glow, shape, ambientColor = error, spotColor = error)
+            .clip(shape)
+            .border(1.dp, border, shape)
+            .background(container)
+            .hoverable(interaction)
+            .clickable(
+                interactionSource = interaction,
+                indication = null,
+                onClick = onClick
+            )
+            .padding(horizontal = 28.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Text(text = "Выйти", style = MaterialTheme.typography.labelMedium)
+        Text(
+            text = "Выйти из аккаунта",
+            color = content,
+            style = MaterialTheme.typography.titleMedium
+        )
     }
 }
 
