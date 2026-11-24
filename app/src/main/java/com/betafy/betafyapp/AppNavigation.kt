@@ -3,19 +3,26 @@ package com.betafy.betafyapp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.betafy.feature.auth.presentation.LoginScreen
 import com.betafy.feature.auth.presentation.RegisterScreen
 import com.betafy.feature.auth.presentation.SessionViewModel
+import com.betafy.feature.notification.presentation.NotificationBell
+import com.betafy.feature.notification.presentation.NotificationInboxViewModel
+import com.betafy.feature.notification.presentation.NotificationKinds
 import com.betafy.feature.profile.presentation.ProfileCabinetViewModel
 import com.betafy.feature.profile.presentation.ProfileEditScreen
 import com.betafy.feature.profile.presentation.ProfileKind
 import com.betafy.feature.profile.presentation.ProfileRoutes
 import com.betafy.feature.splash.presentation.SplashScreen
 import com.betafy.presentation.navigation.screen.NavigationScreen
+import com.betafy.presentation.navigation.screen.colors
 import kotlinx.coroutines.delay
 import androidx.compose.runtime.getValue
 
@@ -25,7 +32,6 @@ private const val REGISTER = "register"
 private const val HOME = "home"
 
 private const val REGISTERED_KEY = "registered"
-private const val PROFILE_NOTICE_KEY = "profile_notice"
 
 private const val SPLASH_DURATION = 5000L
 
@@ -34,6 +40,7 @@ fun AppNavigation() {
     val navController = rememberNavController()
 
     val session: SessionViewModel = hiltViewModel()
+    val inbox: NotificationInboxViewModel = hiltViewModel()
 
     NavHost(
         navController = navController,
@@ -123,18 +130,19 @@ fun AppNavigation() {
         // HOME
         // ====================================================
 
-        composable(HOME) { entry ->
-            val profileNotice by entry.savedStateHandle
-                .getStateFlow(PROFILE_NOTICE_KEY, "")
-                .collectAsStateWithLifecycle()
+        composable(HOME) {
             val cabinet: ProfileCabinetViewModel = hiltViewModel()
             val cabinetState by cabinet.state.collectAsStateWithLifecycle()
-            LaunchedEffect(profileNotice) {
-                cabinet.refresh(session.currentUserId())
+            val lifecycleOwner = LocalLifecycleOwner.current
+            LaunchedEffect(lifecycleOwner) {
+                lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                    val userId = session.currentUserId()
+                    inbox.open(userId.orEmpty())
+                    cabinet.refresh(userId)
+                }
             }
 
             NavigationScreen(
-                profileNotice = profileNotice,
                 readerCreateEnabled = cabinetState.checked && !cabinetState.readerExists,
                 writerCreateEnabled = cabinetState.checked && !cabinetState.writerExists,
                 onLogout = {
@@ -149,12 +157,16 @@ fun AppNavigation() {
                     }
                 },
                 onCreateReader = {
-                    entry.savedStateHandle[PROFILE_NOTICE_KEY] = ""
                     navController.navigate(ProfileRoutes.READER)
                 },
                 onCreateWriter = {
-                    entry.savedStateHandle[PROFILE_NOTICE_KEY] = ""
                     navController.navigate(ProfileRoutes.WRITER)
+                },
+                bell = { item ->
+                    NotificationBell(
+                        accent = item.accent.colors().accent,
+                        viewModel = inbox
+                    )
                 }
             )
         }
@@ -165,9 +177,7 @@ fun AppNavigation() {
                 userId = session.currentUserId(),
                 onBack = { navController.popBackStack() },
                 onSaved = { message ->
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.set(PROFILE_NOTICE_KEY, message)
+                    inbox.record(session.currentUserId().orEmpty(), NotificationKinds.PROFILE, message)
                     navController.popBackStack()
                 }
             )
@@ -179,9 +189,7 @@ fun AppNavigation() {
                 userId = session.currentUserId(),
                 onBack = { navController.popBackStack() },
                 onSaved = { message ->
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.set(PROFILE_NOTICE_KEY, message)
+                    inbox.record(session.currentUserId().orEmpty(), NotificationKinds.PROFILE, message)
                     navController.popBackStack()
                 }
             )
