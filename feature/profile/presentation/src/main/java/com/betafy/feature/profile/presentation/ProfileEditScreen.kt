@@ -36,6 +36,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -339,26 +340,19 @@ private fun ProfileTextField(
     keyboardType: KeyboardType = KeyboardType.Text,
     readOnly: Boolean = false
 ) {
-    val colors = MaterialTheme.colorScheme
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier.fillMaxWidth(),
-        enabled = !readOnly,
+        enabled = true,
         readOnly = readOnly,
-        label = { Text(label) },
+        textStyle = MaterialTheme.typography.bodyLarge,
+        label = { Text(label, style = MaterialTheme.typography.bodyMedium) },
         singleLine = singleLine,
         minLines = if (singleLine) 1 else 4,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         shape = MaterialTheme.shapes.medium,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = colors.surfaceContainerLow,
-            unfocusedContainerColor = colors.surfaceContainerLow,
-            focusedBorderColor = colors.primary,
-            unfocusedBorderColor = colors.outlineVariant,
-            focusedLabelColor = colors.primary,
-            cursorColor = colors.primary
-        )
+        colors = profileFieldColors()
     )
 }
 
@@ -372,7 +366,6 @@ private fun ChoiceField(
     locked: Boolean = false
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val colors = MaterialTheme.colorScheme
     ExposedDropdownMenuBox(
         expanded = expanded && !locked,
         onExpandedChange = { if (!locked) expanded = it }
@@ -381,20 +374,14 @@ private fun ChoiceField(
             value = value,
             onValueChange = {},
             readOnly = true,
-            label = { Text(label) },
+            textStyle = MaterialTheme.typography.bodyLarge,
+            label = { Text(label, style = MaterialTheme.typography.bodyMedium) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                 .fillMaxWidth(),
             shape = MaterialTheme.shapes.medium,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = colors.surfaceContainerLow,
-                unfocusedContainerColor = colors.surfaceContainerLow,
-                focusedBorderColor = colors.primary,
-                unfocusedBorderColor = colors.outlineVariant,
-                focusedLabelColor = colors.primary,
-                cursorColor = colors.primary
-            )
+            colors = profileFieldColors()
         )
         ExposedDropdownMenu(
             expanded = expanded,
@@ -402,7 +389,7 @@ private fun ChoiceField(
         ) {
             options.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(option) },
+                    text = { Text(option, style = MaterialTheme.typography.bodyLarge) },
                     onClick = {
                         onSelect(option)
                         expanded = false
@@ -445,6 +432,33 @@ private fun MultiChoice(
             }
         }
     }
+}
+
+@Composable
+private fun profileFieldColors(): TextFieldColors {
+    val colors = MaterialTheme.colorScheme
+    val border = colors.outline
+    val fill = colors.surfaceContainerLow
+    val text = colors.onSurface
+    val label = colors.onSurfaceVariant
+    return OutlinedTextFieldDefaults.colors(
+        focusedTextColor = text,
+        unfocusedTextColor = text,
+        disabledTextColor = text,
+        focusedContainerColor = fill,
+        unfocusedContainerColor = fill,
+        disabledContainerColor = fill,
+        focusedBorderColor = border,
+        unfocusedBorderColor = border,
+        disabledBorderColor = border,
+        focusedLabelColor = label,
+        unfocusedLabelColor = label,
+        disabledLabelColor = label,
+        focusedTrailingIconColor = label,
+        unfocusedTrailingIconColor = label,
+        disabledTrailingIconColor = label,
+        cursorColor = colors.primary
+    )
 }
 
 private fun optionsWithCurrent(options: List<String>, current: String): List<String> {
