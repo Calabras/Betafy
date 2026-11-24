@@ -1,7 +1,13 @@
 package com.betafy.feature.notification.presentation
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +18,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -42,7 +49,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -221,28 +231,26 @@ private fun InboxPage(
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.weight(1f)
             )
-            IconButton(
+            BounceIconButton(
                 onClick = {
                     val target = if (chosen.isEmpty()) state.items.map { it.id } else chosen.toList()
                     onMarkRead(target)
                 },
-                enabled = state.items.isNotEmpty()
-            ) {
-                Icon(imageVector = Icons.Filled.Check, contentDescription = markLabel)
+                enabled = state.items.isNotEmpty(),
+                label = markLabel
+            ) { pressed ->
+                ReadMarks(pressed = pressed)
             }
-            IconButton(
+            BounceIconButton(
                 onClick = {
                     val target = if (chosen.isEmpty()) state.items.map { it.id } else chosen.toList()
                     val message = if (chosen.isEmpty()) "Удалить все уведомления" else "Удалить выбранные уведомления"
                     onAskDelete(target, message)
                 },
-                enabled = state.items.isNotEmpty()
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Delete,
-                    contentDescription = deleteLabel,
-                    tint = MaterialTheme.colorScheme.error
-                )
+                enabled = state.items.isNotEmpty(),
+                label = deleteLabel
+            ) { pressed ->
+                TrashMark(pressed = pressed)
             }
         }
         Text(
@@ -437,14 +445,103 @@ private fun NotificationRow(
                 overflow = TextOverflow.Ellipsis
             )
         }
-        IconButton(onClick = onDelete) {
-            Icon(
-                imageVector = Icons.Filled.Delete,
-                contentDescription = "Удалить",
-                tint = MaterialTheme.colorScheme.error
-            )
+        BounceIconButton(
+            onClick = onDelete,
+            label = "Удалить"
+        ) { pressed ->
+            TrashMark(pressed = pressed)
         }
     }
+}
+
+@Composable
+private fun BounceIconButton(
+    onClick: () -> Unit,
+    label: String,
+    enabled: Boolean = true,
+    content: @Composable (pressed: Boolean) -> Unit
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed && enabled) 0.82f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "action-scale"
+    )
+    IconButton(
+        onClick = onClick,
+        enabled = enabled,
+        interactionSource = interaction
+    ) {
+        Box(
+            modifier = Modifier
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }
+                .semantics { contentDescription = label },
+            contentAlignment = Alignment.Center
+        ) {
+            content(pressed && enabled)
+        }
+    }
+}
+
+@Composable
+private fun ReadMarks(pressed: Boolean) {
+    val shift by animateDpAsState(
+        targetValue = if (pressed) 3.dp else 0.dp,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "read-shift"
+    )
+    val tint = MaterialTheme.colorScheme.onSurface
+    Box(
+        modifier = Modifier
+            .width(28.dp)
+            .height(22.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Check,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .size(20.dp)
+        )
+        Icon(
+            imageVector = Icons.Filled.Check,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .offset(x = shift)
+                .size(20.dp)
+        )
+    }
+}
+
+@Composable
+private fun TrashMark(pressed: Boolean) {
+    val tilt by animateFloatAsState(
+        targetValue = if (pressed) -16f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "trash-tilt"
+    )
+    Icon(
+        imageVector = Icons.Filled.Delete,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.error,
+        modifier = Modifier.graphicsLayer { rotationZ = tilt }
+    )
 }
 
 private fun titleOf(type: String): String = when (type) {
