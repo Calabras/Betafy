@@ -16,6 +16,12 @@ class NotificationTextTest {
     }
 
     @Test
+    fun pushIdKeepsCreationTime() {
+        assertEquals(1732467600000L, notificationMillis("-OCU6Pe-"))
+        assertNull(notificationMillis("abc"))
+        assertNull(notificationMillis(""))
+    }
+
     fun textUsesCommasInsteadOfPeriods() {
         assertEquals(
             "Профиль создан, Можно продолжить",

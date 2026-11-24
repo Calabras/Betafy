@@ -63,7 +63,11 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.betafy.betafyapp.core.uikit.theme.BetafySizes
 import com.betafy.feature.notification.domain.model.InboxNotification
+import com.betafy.feature.notification.domain.notificationMillis
 import com.betafy.feature.notification.domain.unreadBadge
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 private sealed interface NoticePanel {
     data object Inbox : NoticePanel
@@ -320,6 +324,13 @@ private fun ReadPage(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(text = titleOf(item.type), style = MaterialTheme.typography.titleLarge)
+        notificationStamp(item.id)?.let { stamp ->
+            Text(
+                text = stamp,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
         Text(text = item.text, style = MaterialTheme.typography.bodyLarge)
         CardButton(text = "Закрыть", onClick = onClose)
         TextButton(
@@ -418,6 +429,7 @@ private fun NotificationRow(
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             Row(
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
@@ -434,8 +446,17 @@ private fun NotificationRow(
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = if (item.isRead) FontWeight.Normal else FontWeight.SemiBold,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
                 )
+                notificationStamp(item.id)?.let { stamp ->
+                    Text(
+                        text = stamp,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1
+                    )
+                }
             }
             Text(
                 text = item.text,
@@ -542,6 +563,11 @@ private fun TrashMark(pressed: Boolean) {
         tint = MaterialTheme.colorScheme.error,
         modifier = Modifier.graphicsLayer { rotationZ = tilt }
     )
+}
+
+private fun notificationStamp(id: String): String? {
+    val millis = notificationMillis(id) ?: return null
+    return SimpleDateFormat("dd.MM.yyyy, HH:mm", Locale.forLanguageTag("ru")).format(Date(millis))
 }
 
 private fun titleOf(type: String): String = when (type) {
