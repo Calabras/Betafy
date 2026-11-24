@@ -46,8 +46,9 @@ fun NavigationScreen(
     onLogout: () -> Unit,
     onCreateReader: () -> Unit = {},
     onCreateWriter: () -> Unit = {},
-    readerCreateEnabled: Boolean = true,
-    writerCreateEnabled: Boolean = true,
+    profilesChecked: Boolean = true,
+    readerExists: Boolean = false,
+    writerExists: Boolean = false,
     bell: (@Composable (NavigationBottomModel) -> Unit)? = null,
     navController: NavHostController = rememberNavController()
 ) {
@@ -83,8 +84,9 @@ fun NavigationScreen(
                         onLogout = onLogout,
                         onCreateReader = onCreateReader,
                         onCreateWriter = onCreateWriter,
-                        readerCreateEnabled = readerCreateEnabled,
-                        writerCreateEnabled = writerCreateEnabled
+                        profilesChecked = profilesChecked,
+                        readerExists = readerExists,
+                        writerExists = writerExists
                     )
                 }
             }
@@ -107,8 +109,9 @@ private fun ProfilePlaceholder(
     onLogout: () -> Unit,
     onCreateReader: () -> Unit = {},
     onCreateWriter: () -> Unit = {},
-    readerCreateEnabled: Boolean = true,
-    writerCreateEnabled: Boolean = true
+    profilesChecked: Boolean = true,
+    readerExists: Boolean = false,
+    writerExists: Boolean = false
 ) {
     var expanded by remember { mutableStateOf(false) }
     val gapPx = with(LocalDensity.current) { 12.dp.roundToPx() }
@@ -145,9 +148,9 @@ private fun ProfilePlaceholder(
                                     expanded = false
                                     onCreateReader()
                                 },
-                                enabled = readerCreateEnabled
+                                enabled = profilesChecked
                             ) {
-                                Text(if (readerCreateEnabled) "Добавить профиль ридера" else "Профиль ридера уже создан")
+                                Text(if (readerExists) "Профиль ридера" else "Добавить профиль ридера")
                             }
 
                             Button(
@@ -155,9 +158,9 @@ private fun ProfilePlaceholder(
                                     expanded = false
                                     onCreateWriter()
                                 },
-                                enabled = writerCreateEnabled
+                                enabled = profilesChecked
                             ) {
-                                Text(if (writerCreateEnabled) "Добавить профиль писателя" else "Профиль писателя уже создан")
+                                Text(if (writerExists) "Профиль писателя" else "Добавить профиль писателя")
                             }
                         }
                     }

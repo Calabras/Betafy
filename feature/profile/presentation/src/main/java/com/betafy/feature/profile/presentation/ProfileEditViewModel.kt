@@ -59,7 +59,16 @@ class ProfileEditViewModel @Inject constructor(
                                 loaded = true,
                                 alreadyExists = profile != null,
                                 genres = genres,
-                                feedbackTypes = feedbackTypes
+                                feedbackTypes = feedbackTypes,
+                                bio = profile?.bio.orEmpty(),
+                                experienceLevel = profile?.experienceLevel.orEmpty(),
+                                preferredLanguage = profile?.preferredLanguage.orEmpty(),
+                                maxWordCount = profile?.maxWordCount?.takeIf { it > 0 }?.toString().orEmpty(),
+                                isAvailable = profile?.isAvailable == true,
+                                cooperationType = profile?.cooperationType.orEmpty(),
+                                price = profile?.price?.let(::formatPrice).orEmpty(),
+                                selectedGenreIds = profile?.genreIds.orEmpty().toSet(),
+                                selectedFeedbackTypeIds = profile?.feedbackTypeIds.orEmpty().toSet()
                             )
                         }
                         trace.event("экран READER загружен, запись=${if (profile == null) "нет" else "есть"}")
@@ -72,7 +81,10 @@ class ProfileEditViewModel @Inject constructor(
                             current.copy(
                                 isLoading = false,
                                 loaded = true,
-                                alreadyExists = profile != null
+                                alreadyExists = profile != null,
+                                bio = profile?.bio.orEmpty(),
+                                experienceLevel = profile?.experienceLevel.orEmpty(),
+                                preferredLanguage = profile?.preferredLanguage.orEmpty()
                             )
                         }
                         trace.event("экран WRITER загружен, запись=${if (profile == null) "нет" else "есть"}")
@@ -188,6 +200,11 @@ class ProfileEditViewModel @Inject constructor(
     fun retry(kind: ProfileKind, userId: String?) {
         opened = false
         open(kind, userId)
+    }
+
+    private fun formatPrice(price: Double): String {
+        if (price <= 0.0) return ""
+        return if (price % 1.0 == 0.0) price.toLong().toString() else price.toString()
     }
 
     private fun sanitizePrice(value: String): String {

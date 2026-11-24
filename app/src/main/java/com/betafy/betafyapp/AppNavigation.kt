@@ -143,8 +143,9 @@ fun AppNavigation() {
             }
 
             NavigationScreen(
-                readerCreateEnabled = cabinetState.checked && !cabinetState.readerExists,
-                writerCreateEnabled = cabinetState.checked && !cabinetState.writerExists,
+                profilesChecked = cabinetState.checked,
+                readerExists = cabinetState.readerExists,
+                writerExists = cabinetState.writerExists,
                 onLogout = {
                     session.signOut()
 

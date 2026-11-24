@@ -182,24 +182,28 @@ private fun ProfileForm(
             ),
         verticalArrangement = Arrangement.spacedBy(BetafySpacing.sm)
     ) {
+        val locked = state.alreadyExists
         ProfileTextField(
             value = state.bio,
             onValueChange = onBioChange,
             label = bioLabel,
             singleLine = false,
+            readOnly = locked,
             modifier = Modifier.heightIn(min = 120.dp)
         )
         ChoiceField(
             label = experienceLabel,
             value = state.experienceLevel,
             options = optionsWithCurrent(ProfileChoices.experienceLevels, state.experienceLevel),
-            onSelect = onExperienceChange
+            onSelect = onExperienceChange,
+            locked = locked
         )
         ChoiceField(
             label = languageLabel,
             value = state.preferredLanguage,
             options = optionsWithCurrent(ProfileChoices.languages, state.preferredLanguage),
-            onSelect = onLanguageChange
+            onSelect = onLanguageChange,
+            locked = locked
         )
 
         if (kind == ProfileKind.READER) {
@@ -207,7 +211,8 @@ private fun ProfileForm(
                 value = state.maxWordCount,
                 onValueChange = onMaxWordCountChange,
                 label = "Максимальный объём (слов)",
-                keyboardType = KeyboardType.Number
+                keyboardType = KeyboardType.Number,
+                readOnly = locked
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -217,21 +222,24 @@ private fun ProfileForm(
                 Text("Готов брать работы", style = MaterialTheme.typography.bodyLarge)
                 Switch(
                     checked = state.isAvailable,
-                    onCheckedChange = onAvailableChange
+                    onCheckedChange = onAvailableChange,
+                    enabled = !locked
                 )
             }
             ChoiceField(
                 label = "Формат сотрудничества",
                 value = state.cooperationType,
                 options = optionsWithCurrent(ProfileChoices.cooperationTypes, state.cooperationType),
-                onSelect = onCooperationChange
+                onSelect = onCooperationChange,
+                locked = locked
             )
             if (state.cooperationType == ProfileChoices.PAID) {
                 ProfileTextField(
                     value = state.price,
                     onValueChange = onPriceChange,
                     label = "Цена за платное чтение",
-                    keyboardType = KeyboardType.Decimal
+                    keyboardType = KeyboardType.Decimal,
+                    readOnly = locked
                 )
             }
             MultiChoice(
@@ -239,14 +247,16 @@ private fun ProfileForm(
                 emptyText = "Справочник жанров пока пуст",
                 items = state.genres.map { it.id to it.name },
                 selected = state.selectedGenreIds,
-                onToggle = onToggleGenre
+                onToggle = onToggleGenre,
+                locked = locked
             )
             MultiChoice(
                 title = "Компетенции",
                 emptyText = "Справочник видов обратной связи пока пуст",
                 items = state.feedbackTypes.map { it.id to it.name },
                 selected = state.selectedFeedbackTypeIds,
-                onToggle = onToggleFeedback
+                onToggle = onToggleFeedback,
+                locked = locked
             )
         }
 
@@ -284,17 +294,19 @@ private fun ProfileForm(
             )
         }
 
-        Button(
-            onClick = onSave,
-            enabled = state.loaded && !state.isSaving && !state.alreadyExists && missing == null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(BetafySizes.buttonHeight)
-        ) {
-            if (state.isSaving) {
-                CircularProgressIndicator()
-            } else {
-                Text("Сохранить", style = MaterialTheme.typography.titleMedium)
+        if (!state.alreadyExists) {
+            Button(
+                onClick = onSave,
+                enabled = state.loaded && !state.isSaving && missing == null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(BetafySizes.buttonHeight)
+            ) {
+                if (state.isSaving) {
+                    CircularProgressIndicator()
+                } else {
+                    Text("Сохранить", style = MaterialTheme.typography.titleMedium)
+                }
             }
         }
         Spacer(Modifier.height(BetafySpacing.lg))
@@ -308,13 +320,16 @@ private fun ProfileTextField(
     label: String,
     modifier: Modifier = Modifier,
     singleLine: Boolean = true,
-    keyboardType: KeyboardType = KeyboardType.Text
+    keyboardType: KeyboardType = KeyboardType.Text,
+    readOnly: Boolean = false
 ) {
     val colors = MaterialTheme.colorScheme
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier.fillMaxWidth(),
+        enabled = !readOnly,
+        readOnly = readOnly,
         label = { Text(label) },
         singleLine = singleLine,
         minLines = if (singleLine) 1 else 4,
@@ -337,13 +352,14 @@ private fun ChoiceField(
     label: String,
     value: String,
     options: List<String>,
-    onSelect: (String) -> Unit
+    onSelect: (String) -> Unit,
+    locked: Boolean = false
 ) {
     var expanded by remember { mutableStateOf(false) }
     val colors = MaterialTheme.colorScheme
     ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it }
+        expanded = expanded && !locked,
+        onExpandedChange = { if (!locked) expanded = it }
     ) {
         OutlinedTextField(
             value = value,
@@ -388,7 +404,8 @@ private fun MultiChoice(
     emptyText: String,
     items: List<Pair<String, String>>,
     selected: Set<String>,
-    onToggle: (String) -> Unit
+    onToggle: (String) -> Unit,
+    locked: Boolean = false
 ) {
     Text(text = title, style = MaterialTheme.typography.titleSmall)
     if (items.isEmpty()) {
@@ -405,7 +422,8 @@ private fun MultiChoice(
             items.forEach { (id, name) ->
                 FilterChip(
                     selected = id in selected,
-                    onClick = { onToggle(id) },
+                    onClick = { if (!locked) onToggle(id) },
+                    enabled = !locked,
                     label = { Text(name) }
                 )
             }
