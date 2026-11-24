@@ -24,6 +24,7 @@ dependencies {
     implementation("com.google.firebase:firebase-database")
     implementation(project(":feature:notification:domain"))
     implementation(project(":feature:notification:data"))
+    implementation(project(":feature:notification:presentation"))
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 }

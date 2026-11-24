@@ -32,5 +32,7 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
     implementation(project(":feature:notification:domain"))
+    implementation(project(":core:ui-kit"))
+    implementation(project(":core:common"))
     testImplementation(libs.junit)
 }

@@ -25,6 +25,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(project(":feature:notification:domain"))
+    implementation(project(":core:network"))
+    implementation(project(":core:database"))
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
     testImplementation(libs.junit)
