@@ -1,39 +1,42 @@
 package com.betafy.presentation.navigation.screen
 
-import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntRect
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupPositionProvider
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import com.betafy.betafyapp.core.uikit.theme.BetafySizes
+import com.betafy.betafyapp.core.uikit.theme.extendedColors
+import kotlinx.coroutines.launch
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -113,97 +116,172 @@ private fun ProfilePlaceholder(
     readerExists: Boolean = false,
     writerExists: Boolean = false
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    val gapPx = with(LocalDensity.current) { 12.dp.roundToPx() }
-    val positionProvider = remember(gapPx) { AboveAnchorPositionProvider(gapPx) }
+    var confirmLogout by remember { mutableStateOf(false) }
+    val pagerState = rememberPagerState(pageCount = { 2 })
+    val scope = rememberCoroutineScope()
+    val success = MaterialTheme.extendedColors.success
 
-    BackHandler(enabled = expanded) { expanded = false }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-
-        // Слой 1: основной контент
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(text = "Профиль", color = MaterialTheme.colorScheme.onSurface)
-
-            Spacer(Modifier.height(16.dp))
-
-            // Якорь: новые кнопки появляются прямо над этой кнопкой
-            Box {
-                Button(onClick = { expanded = true }) {
-                    Text("Создать аккаунт")
-                }
-
-                if (expanded) {
-                    Popup(popupPositionProvider = positionProvider) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Button(
-                                onClick = {
-                                    expanded = false
-                                    onCreateReader()
-                                },
-                                enabled = profilesChecked
-                            ) {
-                                Text(if (readerExists) "Профиль ридера" else "Добавить профиль ридера")
-                            }
-
-                            Button(
-                                onClick = {
-                                    expanded = false
-                                    onCreateWriter()
-                                },
-                                enabled = profilesChecked
-                            ) {
-                                Text(if (writerExists) "Профиль писателя" else "Добавить профиль писателя")
-                            }
-                        }
-                    }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp, vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = "Профиль", style = MaterialTheme.typography.titleLarge)
+        Spacer(Modifier.height(20.dp))
+        RoleSwitch(
+            selected = pagerState.currentPage,
+            onSelect = { index -> scope.launch { pagerState.animateScrollToPage(index) } }
+        )
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+        ) { page ->
+            val exists = if (page == 0) readerExists else writerExists
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Button(
+                    onClick = { if (page == 0) onCreateReader() else onCreateWriter() },
+                    enabled = profilesChecked,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(BetafySizes.buttonHeight),
+                    shape = MaterialTheme.shapes.medium,
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 0.dp,
+                        pressedElevation = 0.dp,
+                        focusedElevation = 0.dp,
+                        hoveredElevation = 0.dp,
+                        disabledElevation = 0.dp
+                    ),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = success.color,
+                        contentColor = success.onColor
+                    )
+                ) {
+                    Text(
+                        text = if (exists) "Посмотреть профиль" else "Создать профиль",
+                        style = MaterialTheme.typography.labelLarge
+                    )
                 }
             }
-
-            Spacer(Modifier.height(8.dp))
-
-            Button(onClick = onLogout) { Text("Выйти") }
         }
-
-        // Слой 2: затемнение (перекрывает контент и кнопки слоя 1)
-        AnimatedVisibility(
-            visible = expanded,
-            enter = fadeIn(),
-            exit = fadeOut()
+        TextButton(
+            onClick = { confirmLogout = true },
+            modifier = Modifier.fillMaxWidth()
         ) {
+            Text(text = "Выйти", color = MaterialTheme.colorScheme.error)
+        }
+    }
+
+    if (confirmLogout) {
+        LogoutDialog(
+            onYes = {
+                confirmLogout = false
+                onLogout()
+            },
+            onNo = { confirmLogout = false }
+        )
+    }
+}
+
+@Composable
+private fun RoleSwitch(
+    selected: Int,
+    onSelect: (Int) -> Unit
+) {
+    val labels = listOf("Ридер", "Писатель")
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(50))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .padding(4.dp)
+    ) {
+        labels.forEachIndexed { index, label ->
+            val active = selected == index
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.6f))
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) { expanded = false }
-            )
+                    .weight(1f)
+                    .clip(RoundedCornerShape(50))
+                    .background(
+                        if (active) MaterialTheme.colorScheme.onSurface else Color.Transparent
+                    )
+                    .clickable { onSelect(index) }
+                    .padding(vertical = 12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = label,
+                    color = if (active) {
+                        MaterialTheme.colorScheme.surface
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
         }
     }
 }
 
-/** Располагает popup по центру над якорной кнопкой с отступом [gapPx]. */
-private class AboveAnchorPositionProvider(
-    private val gapPx: Int
-) : PopupPositionProvider {
-    override fun calculatePosition(
-        anchorBounds: IntRect,
-        windowSize: IntSize,
-        layoutDirection: LayoutDirection,
-        popupContentSize: IntSize
-    ): IntOffset {
-        val x = (anchorBounds.left + (anchorBounds.width - popupContentSize.width) / 2)
-            .coerceIn(0, (windowSize.width - popupContentSize.width).coerceAtLeast(0))
-        val y = (anchorBounds.top - popupContentSize.height - gapPx).coerceAtLeast(0)
-        return IntOffset(x, y)
+@Composable
+private fun LogoutDialog(
+    onYes: () -> Unit,
+    onNo: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onNo,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .padding(horizontal = 24.dp)
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 8.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(text = "Выход", style = MaterialTheme.typography.titleLarge)
+                Text(
+                    text = "Вы хотите выйти из аккаунта?",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Button(
+                    onClick = onYes,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(BetafySizes.buttonHeight),
+                    shape = MaterialTheme.shapes.medium,
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 0.dp,
+                        pressedElevation = 0.dp,
+                        focusedElevation = 0.dp,
+                        hoveredElevation = 0.dp,
+                        disabledElevation = 0.dp
+                    )
+                ) {
+                    Text(text = "Да")
+                }
+                TextButton(
+                    onClick = onNo,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(BetafySizes.buttonHeight),
+                    shape = MaterialTheme.shapes.medium
+                ) {
+                    Text(text = "Нет")
+                }
+            }
+        }
     }
 }
