@@ -7,11 +7,14 @@ import com.betafy.feature.notification.domain.EnsureNotificationUseCase
 import com.betafy.feature.notification.domain.MarkNotificationsReadUseCase
 import com.betafy.feature.notification.domain.ObserveNotificationsUseCase
 import com.betafy.feature.notification.domain.SaveNotificationUseCase
+import com.betafy.feature.notification.domain.SignalNotificationUseCase
 import com.betafy.feature.notification.domain.model.InboxNotification
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
@@ -21,6 +24,7 @@ import kotlinx.coroutines.launch
 object NotificationKinds {
     const val PROFILE = "profile"
     const val INTEREST = "interest"
+    const val MESSAGE = "message"
 }
 
 data class NotificationUiState(
@@ -35,6 +39,7 @@ data class NotificationUiState(
 class NotificationInboxViewModel @Inject constructor(
     private val observeNotifications: ObserveNotificationsUseCase,
     private val ensureNotification: EnsureNotificationUseCase,
+    private val signalNotification: SignalNotificationUseCase,
     private val saveNotification: SaveNotificationUseCase,
     private val markNotificationsRead: MarkNotificationsReadUseCase,
     private val deleteNotifications: DeleteNotificationsUseCase
@@ -46,6 +51,7 @@ class NotificationInboxViewModel @Inject constructor(
     private var openedFor: String? = null
     private var listen: Job? = null
     private val ensuring = mutableSetOf<String>()
+    private val signalGate = Mutex()
 
     fun open(userId: String) {
         if (userId.isBlank()) {
@@ -77,6 +83,17 @@ class NotificationInboxViewModel @Inject constructor(
             ensureNotification(userId, type, text, relatedEntityId).onFailure { error ->
                 ensuring.remove(relatedEntityId)
                 _state.update { it.copy(error = error.message) }
+            }
+        }
+    }
+
+    fun signal(userId: String, type: String, text: String, relatedEntityId: String) {
+        if (userId.isBlank() || text.isBlank() || relatedEntityId.isBlank()) return
+        viewModelScope.launch {
+            signalGate.withLock {
+                signalNotification(userId, type, text, relatedEntityId).onFailure { error ->
+                    _state.update { it.copy(error = error.message) }
+                }
             }
         }
     }

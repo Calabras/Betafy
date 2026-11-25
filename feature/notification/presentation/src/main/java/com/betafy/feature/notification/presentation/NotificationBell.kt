@@ -78,7 +78,8 @@ private sealed interface NoticePanel {
 @Composable
 fun NotificationBell(
     accent: Color,
-    viewModel: NotificationInboxViewModel
+    viewModel: NotificationInboxViewModel,
+    onWrite: (String) -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var opened by remember { mutableStateOf(false) }
@@ -136,7 +137,11 @@ fun NotificationBell(
             state = state,
             onDismiss = { opened = false },
             onMarkRead = viewModel::markRead,
-            onDelete = viewModel::delete
+            onDelete = viewModel::delete,
+            onWrite = { matchId ->
+                opened = false
+                onWrite(matchId)
+            }
         )
     }
 }
@@ -147,7 +152,8 @@ private fun NotificationWindow(
     state: NotificationUiState,
     onDismiss: () -> Unit,
     onMarkRead: (List<String>) -> Unit,
-    onDelete: (List<String>) -> Unit
+    onDelete: (List<String>) -> Unit,
+    onWrite: (String) -> Unit
 ) {
     var panel by remember { mutableStateOf<NoticePanel>(NoticePanel.Inbox) }
     var selected by remember { mutableStateOf(setOf<String>()) }
@@ -190,6 +196,7 @@ private fun NotificationWindow(
                     item = current.item,
                     onMarkRead = onMarkRead,
                     onClose = { panel = NoticePanel.Inbox },
+                    onWrite = onWrite,
                     onAskDelete = {
                         panel = NoticePanel.ConfirmDelete(
                             listOf(current.item.id),
@@ -314,6 +321,7 @@ private fun ReadPage(
     item: InboxNotification,
     onMarkRead: (List<String>) -> Unit,
     onClose: () -> Unit,
+    onWrite: (String) -> Unit,
     onAskDelete: () -> Unit
 ) {
     LaunchedEffect(item.id) {
@@ -333,8 +341,15 @@ private fun ReadPage(
         }
         Text(text = item.text, style = MaterialTheme.typography.bodyLarge)
         CardButton(
-            text = if (item.type == NotificationKinds.INTEREST) "Написать" else "Закрыть",
-            onClick = onClose
+            text = if (opensChat(item.type)) "Написать" else "Закрыть",
+            onClick = {
+                val matchId = item.relatedEntityId
+                if (opensChat(item.type) && !matchId.isNullOrBlank()) {
+                    onWrite(matchId)
+                } else {
+                    onClose()
+                }
+            }
         )
         TextButton(
             onClick = onAskDelete,
@@ -573,9 +588,13 @@ private fun notificationStamp(id: String): String? {
     return SimpleDateFormat("dd.MM.yyyy, HH:mm", Locale.forLanguageTag("ru")).format(Date(millis))
 }
 
+private fun opensChat(type: String): Boolean =
+    type == NotificationKinds.INTEREST || type == NotificationKinds.MESSAGE
+
 private fun titleOf(type: String): String = when (type) {
     NotificationKinds.PROFILE -> "Профиль"
     NotificationKinds.INTEREST -> "У вас новый мэтч!"
+    NotificationKinds.MESSAGE -> "Новое сообщение"
     "match" -> "Мэтч"
     else -> "Уведомление"
 }

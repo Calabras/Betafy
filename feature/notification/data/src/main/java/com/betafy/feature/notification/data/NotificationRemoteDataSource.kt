@@ -63,6 +63,18 @@ class NotificationRemoteDataSource(
         }
     }
 
+    suspend fun revive(id: String, text: String) {
+        if (id.isBlank()) return
+        Log.i(TAG, "обновление: $id")
+        val updates = mutableMapOf<String, Any?>(
+            "$NODE/$id/text" to text,
+            "$NODE/$id/is_read" to false
+        )
+        withTimeout(TIMEOUT_MS) {
+            database.reference.updateChildren(updates).await()
+        }
+    }
+
     suspend fun markRead(ids: List<String>) {
         val updates = mutableMapOf<String, Any?>()
         ids.forEach { updates["$NODE/$it/is_read"] = true }

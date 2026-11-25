@@ -12,6 +12,7 @@ interface NotificationRepository {
         text: String,
         relatedEntityId: String?
     ): Result<Unit>
+    suspend fun revive(id: String, text: String): Result<Unit>
     suspend fun markRead(ids: List<String>): Result<Unit>
     suspend fun delete(ids: List<String>): Result<Unit>
 }

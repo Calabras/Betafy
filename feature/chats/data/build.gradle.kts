@@ -19,7 +19,12 @@ android {
 }
 
 dependencies {
-    implementation("com.google.firebase:firebase-database")
     implementation(platform("com.google.firebase:firebase-bom:35.0.0"))
+    implementation("com.google.firebase:firebase-database")
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.play.services)
     implementation(project(":feature:chats:domain"))
+    implementation(project(":core:network"))
+    implementation(project(":core:database"))
+    testImplementation(libs.junit)
 }

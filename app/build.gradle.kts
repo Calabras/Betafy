@@ -54,6 +54,8 @@ dependencies {
     implementation(project(":feature:match:di"))
     implementation(project(":feature:notification:presentation"))
     implementation(project(":feature:notification:di"))
+    implementation(project(":feature:chats:presentation"))
+    implementation(project(":feature:chats:di"))
     implementation(project(":app:presentation"))
     implementation(project(":core:ui-kit"))
     implementation(libs.androidx.activity.ktx)

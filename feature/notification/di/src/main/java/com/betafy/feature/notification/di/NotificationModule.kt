@@ -8,6 +8,7 @@ import com.betafy.feature.notification.domain.MarkNotificationsReadUseCase
 import com.betafy.feature.notification.domain.NotificationRepository
 import com.betafy.feature.notification.domain.ObserveNotificationsUseCase
 import com.betafy.feature.notification.domain.SaveNotificationUseCase
+import com.betafy.feature.notification.domain.SignalNotificationUseCase
 import com.google.firebase.database.FirebaseDatabase
 import dagger.Module
 import dagger.Provides
@@ -40,6 +41,11 @@ object NotificationModule {
     fun provideEnsureNotificationUseCase(
         repository: NotificationRepository
     ): EnsureNotificationUseCase = EnsureNotificationUseCase(repository)
+
+    @Provides
+    fun provideSignalNotificationUseCase(
+        repository: NotificationRepository
+    ): SignalNotificationUseCase = SignalNotificationUseCase(repository)
 
     @Provides
     fun provideSaveNotificationUseCase(

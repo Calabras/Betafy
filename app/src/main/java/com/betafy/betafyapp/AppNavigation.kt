@@ -10,6 +10,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.betafy.feature.chats.presentation.ChatsScreen
+import com.betafy.feature.chats.presentation.ChatsViewModel
 import com.betafy.feature.auth.presentation.LoginScreen
 import com.betafy.feature.auth.presentation.RegisterScreen
 import com.betafy.feature.auth.presentation.SessionViewModel
@@ -135,12 +137,27 @@ fun AppNavigation() {
         composable(HOME) {
             val cabinet: ProfileCabinetViewModel = hiltViewModel()
             val matching: MatchViewModel = hiltViewModel()
+            val chats: ChatsViewModel = hiltViewModel()
             val cabinetState by cabinet.state.collectAsStateWithLifecycle()
             val userName by session.username.collectAsStateWithLifecycle()
+            val chatState by chats.state.collectAsStateWithLifecycle()
             val lifecycleOwner = LocalLifecycleOwner.current
+            LaunchedEffect(chats) {
+                chats.incoming.collect { event ->
+                    val userId = session.currentUserId().orEmpty()
+                    val nick = event.peerUsername
+                    val text = if (nick.isBlank()) {
+                        "Вам написал ${event.peerName}"
+                    } else {
+                        "Вам написал ${event.peerName} (@$nick)"
+                    }
+                    inbox.signal(userId, NotificationKinds.MESSAGE, text, event.matchId)
+                }
+            }
             LaunchedEffect(lifecycleOwner) {
                 lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
                     val userId = session.currentUserId()
+                    chats.start(userId.orEmpty())
                     inbox.open(userId.orEmpty())
                     cabinet.refresh(userId)
                     session.refreshUsername()
@@ -152,6 +169,7 @@ fun AppNavigation() {
 
             NavigationScreen(
                 userName = userName,
+                chatsUnread = chatState.unread,
                 readerCreateEnabled = cabinetState.checked && !cabinetState.readerExists,
                 writerCreateEnabled = cabinetState.checked && !cabinetState.writerExists,
                 onLogout = {
@@ -174,10 +192,19 @@ fun AppNavigation() {
                 matchContent = {
                     MatchScreen(userId = session.currentUserId().orEmpty())
                 },
-                bell = { item ->
+                chatsContent = { matchId, token ->
+                    ChatsScreen(
+                        userId = session.currentUserId().orEmpty(),
+                        focusMatchId = matchId,
+                        focusToken = token,
+                        viewModel = chats
+                    )
+                },
+                bell = { item, openChat ->
                     NotificationBell(
                         accent = item.accent.colors().accent,
-                        viewModel = inbox
+                        viewModel = inbox,
+                        onWrite = openChat
                     )
                 }
             )

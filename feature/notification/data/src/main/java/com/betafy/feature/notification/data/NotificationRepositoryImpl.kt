@@ -30,6 +30,10 @@ class NotificationRepositoryImpl(
         dataSource.save(userId, type, text, relatedEntityId)
     }
 
+    override suspend fun revive(id: String, text: String): Result<Unit> = resultOf {
+        dataSource.revive(id, text)
+    }
+
     override suspend fun markRead(ids: List<String>): Result<Unit> = resultOf {
         dataSource.markRead(ids)
     }

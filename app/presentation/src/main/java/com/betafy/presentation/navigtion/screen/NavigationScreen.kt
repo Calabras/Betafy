@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -35,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.navigation.NavHostController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -49,18 +52,25 @@ fun NavigationScreen(
     readerCreateEnabled: Boolean = true,
     writerCreateEnabled: Boolean = true,
     userName: String = "",
-    bell: (@Composable (NavigationBottomModel) -> Unit)? = null,
+    chatsUnread: Int = 0,
+    bell: (@Composable (NavigationBottomModel, (String) -> Unit) -> Unit)? = null,
     matchContent: @Composable () -> Unit = { PlaceholderScreen("Мэтч") },
+    chatsContent: @Composable (String?, Int) -> Unit = { _, _ -> PlaceholderScreen("Чаты") },
     navController: NavHostController = rememberNavController()
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val currentItem = NavigationBottomModel.getNavItems()
         .firstOrNull { it.route == currentRoute } ?: NavigationBottomModel.Search
+    var chatMatchId by remember { mutableStateOf<String?>(null) }
+    var chatToken by remember { mutableStateOf(0) }
 
+    val keyboardOpen = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        bottomBar = { AppBottomBar(navController) }
+        bottomBar = {
+            if (!keyboardOpen) AppBottomBar(navController, chatsUnread)
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -70,7 +80,21 @@ fun NavigationScreen(
             ScreenHeader(
                 item = currentItem,
                 userName = userName,
-                bell = bell?.let { slot -> { slot(currentItem) } }
+                bell = bell?.let { slot ->
+                    {
+                        slot(currentItem) { matchId ->
+                            chatMatchId = matchId
+                            chatToken += 1
+                            navController.navigate(NavigationBottomModel.Chats.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    }
+                }
             )
 
             NavHost(
@@ -80,7 +104,7 @@ fun NavigationScreen(
             ) {
                 composable(NavigationBottomModel.Search.route) { PlaceholderScreen("Поиск") }
                 composable(NavigationBottomModel.Match.route) { matchContent() }
-                composable(NavigationBottomModel.Chats.route) { PlaceholderScreen("Чаты") }
+                composable(NavigationBottomModel.Chats.route) { chatsContent(chatMatchId, chatToken) }
                 composable(NavigationBottomModel.Profile.route) {
                     ProfilePlaceholder(
                         onLogout = onLogout,

@@ -24,12 +24,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
@@ -92,7 +97,7 @@ private fun Density.circleDrop(bump: Float): Float =
 // ===== СВЯЗКА С НАВИГАЦИЕЙ: переключение вкладок =====
 // Определяет выбранную вкладку по текущему маршруту и переходит на нажатую
 @Composable
-fun AppBottomBar(navController: NavHostController) {
+fun AppBottomBar(navController: NavHostController, chatsUnread: Int = 0) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val destination = backStackEntry?.destination
     val items = NavigationBottomModel.getNavItems()
@@ -103,6 +108,7 @@ fun AppBottomBar(navController: NavHostController) {
     BetafyBottomBar(
         items = items,
         selectedIndex = selectedIndex,
+        chatsUnread = chatsUnread,
         onSelect = { item ->
             navController.navigate(item.route) {
                 popUpTo(navController.graph.findStartDestination().id) {
@@ -120,6 +126,7 @@ fun AppBottomBar(navController: NavHostController) {
 fun BetafyBottomBar(
     items: List<NavigationBottomModel>,
     selectedIndex: Int,
+    chatsUnread: Int = 0,
     onSelect: (NavigationBottomModel) -> Unit
 ) {
     // --- Цвета: фон панели, цвет невыбранных иконок, цвета кружка выбранной вкладки ---
@@ -221,6 +228,14 @@ fun BetafyBottomBar(
                                 alpha = 1f - closeness
                             }
                     )
+                    if (item == NavigationBottomModel.Chats && chatsUnread > 0) {
+                        ChatBadge(
+                            count = chatsUnread,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(top = 4.dp, end = 10.dp)
+                        )
+                    }
                 }
             }
         }
@@ -253,6 +268,27 @@ fun BetafyBottomBar(
                 modifier = Modifier.size(ActiveIconSize)
             )
         }
+    }
+}
+
+@Composable
+private fun ChatBadge(count: Int, modifier: Modifier = Modifier) {
+    val label = if (count > 99) "99+" else count.toString()
+    Box(
+        modifier = modifier
+            .size(if (label.length > 2) 22.dp else 18.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.error),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            color = Color.White,
+            fontSize = if (label.length > 2) 8.sp else 10.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            maxLines = 1
+        )
     }
 }
 
